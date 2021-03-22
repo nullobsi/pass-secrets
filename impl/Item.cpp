@@ -75,9 +75,18 @@ Item::~Item() {
 sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>
 Item::GetSecret(const sdbus::ObjectPath &session) {
 	if (!backend->isUnlocked()) {
-		throw sdbus::createError()
+		throw sdbus::Error("org.freedesktop.Secret.Error.IsLocked",
+		                   "The object must be unlocked before this action can be carried out.");
 	}
-	return sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>(nullptr);
+	auto cArr = backend->getSecret();
+	std::vector<uint8_t> secret(cArr, cArr + backend->getSecretLength());
+
+	// TODO: how to check item type?
+	return sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>(
+			std::tuple<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>(session,
+			                                                                                       std::vector<uint8_t>(),
+			                                                                                       secret,
+			                                                                                       "text/plain; charset=utf8"));
 }
 
 sdbus::ObjectPath
