@@ -99,13 +99,12 @@ PassItem::unlock() {
 	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path())
 	                                   .generic_string();
 	cout << path << endl;
-	const char *command_line[] = {"pass", "show", path.c_str(), SUBPROCESS_NULL};
-	int res = subprocess_create(command_line, 0, &subprocess);
+	const char *command_line[] = {"/usr/bin/pass", "show", path.c_str(), NULL};
+	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment | subprocess_option_enable_async, &subprocess);
 	if (res != 0) {
 		throw std::runtime_error("Error while spawning pass");
 	}
 
-	FILE *f = subprocess_stdout(&subprocess);
 	auto *buf = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * BUF_SIZE));
 	size_t totalRead = 0;
 	long buffers = 1;
@@ -116,11 +115,13 @@ PassItem::unlock() {
 	}
 	while (true) {
 		// read to buffer at proper offset and size
-		size_t r = fread(buf + totalRead, sizeof(uint8_t), (BUF_SIZE * buffers) - totalRead, f);
+		uint8_t *offset = buf + totalRead;
+		size_t numToRead = (BUF_SIZE * buffers) - totalRead;
+		size_t r = subprocess_read_stdout(&subprocess, reinterpret_cast<char *const>(offset), numToRead * sizeof(uint8_t));
 		totalRead += r;
 
 		// check EOF
-		if (feof(f)) break;
+		if (r == 0) break;
 
 		// resize buffer if needed
 		if (totalRead == (BUF_SIZE * buffers)) {
@@ -134,7 +135,11 @@ PassItem::unlock() {
 			buf = nbuf;
 		}
 	}
-
+	if (totalRead == 0) {
+		free(buf);
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Failed to read buffer!");
+	}
 	// make buffer proper size
 	if (totalRead != (BUF_SIZE * buffers)) {
 		auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t) * totalRead));

@@ -16,6 +16,9 @@ Collection::Collection(std::shared_ptr<PassCollection> backend_,
 		: sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>(conn, std::move(path)),
 		  backend(std::move(backend_)), parent(std::move(parent_)) {
 	registerAdaptor();
+	for (const auto &item : backend->getItems()) {
+		items.insert({item->getId(), std::make_unique<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this())});
+	}
 }
 
 Collection::~Collection() {

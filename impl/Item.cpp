@@ -75,8 +75,9 @@ Item::~Item() {
 sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>
 Item::GetSecret(const sdbus::ObjectPath &session) {
 	if (!backend->isUnlocked()) {
-		throw sdbus::Error("org.freedesktop.Secret.Error.IsLocked",
-		                   "The object must be unlocked before this action can be carried out.");
+		backend->unlock();
+//		throw sdbus::Error("org.freedesktop.Secret.Error.IsLocked",
+//		                   "The object must be unlocked before this action can be carried out.");
 	}
 	auto cArr = backend->getSecret();
 	std::vector<uint8_t> secret(cArr, cArr + backend->getSecretLength());
