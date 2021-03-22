@@ -48,7 +48,7 @@ namespace DHelper {
 		map<string, string> rtn;
 
 		for (auto &entry : d.GetObject()) {
-			rtn.insert(entry.name.GetString(), entry.value.GetString());
+			rtn.insert({entry.name.GetString(), entry.value.GetString()});
 		}
 
 		return rtn;

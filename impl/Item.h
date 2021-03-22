@@ -17,7 +17,6 @@ public:
 	     sdbus::IConnection &conn,
 	     std::string path,
 	     std::weak_ptr<Collection> parent_);
-
 	~Item();
 
 	sdbus::ObjectPath

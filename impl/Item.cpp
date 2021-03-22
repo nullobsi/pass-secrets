@@ -93,3 +93,8 @@ sdbus::ObjectPath
 Item::getPath() {
 	return sdbus::ObjectPath(getObject().getObjectPath());
 }
+
+void
+Item::SetSecret(const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string> &secret) {
+	// TODO: Set secret
+}
