@@ -9,6 +9,7 @@
 #include <nanoid/nanoid.h>
 
 using namespace std;
+
 PassStore::PassStore() {
 	auto storeLoc = getenv("PASSWORD_STORE_DIR");
 	auto homeDir = getenv("HOME");
@@ -82,7 +83,7 @@ PassStore::CreateCollection(const std::string &label,
 std::vector<std::shared_ptr<PassCollection>>
 PassStore::GetCollections() {
 	vector<shared_ptr<PassCollection>> rtn;
-	for (const auto& entry : collections) {
+	for (const auto &entry : collections) {
 		rtn.push_back(entry.second);
 	}
 

@@ -7,12 +7,13 @@
 #include "PassCollection.h"
 #include "DocumentHelper.h"
 #include "PassItem.h"
+
 using namespace std;
 using namespace rapidjson;
 
 // TODO: Save on changes
 
-PassCollection::PassCollection(std::filesystem::path location_): location(std::move(location_)), alias() {
+PassCollection::PassCollection(std::filesystem::path location_) : location(std::move(location_)), alias() {
 	fstream docFile;
 	docFile.open(location / "collection.json", ios::in);
 	Document d = DHelper::ReadDocument(docFile);
@@ -34,7 +35,7 @@ PassCollection::PassCollection(std::filesystem::path location_): location(std::m
 
 	for (auto &entry : filesystem::directory_iterator(location)) {
 		if (!entry.is_directory()) continue;
-		const auto& itemPath = entry.path();
+		const auto &itemPath = entry.path();
 		if (!filesystem::exists(itemPath / "item.json")) continue;
 		try {
 			auto n = make_shared<PassItem>(itemPath);
@@ -54,10 +55,11 @@ err:
 }
 
 PassCollection::PassCollection(filesystem::path &location_,
-                               std::string  label_,
-                               std::string  id_,
+                               std::string label_,
+                               std::string id_,
                                int64_t created_,
-                               std::string alias_): label(std::move(label_)), id(std::move(id_)), created(created_), location(location_), alias(std::move(alias_)) {
+                               std::string alias_) : label(std::move(label_)), id(std::move(id_)), created(created_),
+                                                     location(location_), alias(std::move(alias_)) {
 
 }
 
@@ -84,7 +86,7 @@ PassCollection::getCreated() const {
 std::vector<std::shared_ptr<PassItem>>
 PassCollection::getItems() {
 	std::vector<std::shared_ptr<PassItem>> r;
-	for (const auto& entry : items) {
+	for (const auto &entry : items) {
 		r.push_back(entry.second);
 	}
 	return r;

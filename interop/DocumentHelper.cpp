@@ -10,7 +10,7 @@ using namespace rapidjson;
 namespace DHelper {
 	// documents
 	void
-	WriteDocument(const Document& d,
+	WriteDocument(const Document &d,
 	              ostream &f) {
 
 		OStreamWrapper wrapper(f);
@@ -28,7 +28,9 @@ namespace DHelper {
 	}
 
 
-	Value SerializeAttrib(map<string, string> &dict, MemoryPoolAllocator<CrtAllocator> &alloc) {
+	Value
+	SerializeAttrib(map<string, string> &dict,
+	                MemoryPoolAllocator<CrtAllocator> &alloc) {
 		Value d;
 		d.SetObject();
 		for (auto &entry : dict) {

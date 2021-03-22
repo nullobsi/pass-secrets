@@ -4,6 +4,7 @@
 
 #ifndef PASS_FDO_SECRETS_DOCUMENTHELPER_H
 #define PASS_FDO_SECRETS_DOCUMENTHELPER_H
+
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/ostreamwrapper.h"
@@ -15,19 +16,22 @@
 namespace DHelper {
 	using namespace std;
 	using namespace rapidjson;
+
 	// documents
 	void
-	WriteDocument(const Document& d,
-	                         ostream &f);
+	WriteDocument(const Document &d,
+	              ostream &f);
 
 	Document
 	ReadDocument(istream &f);
 
 
 	Value
-	SerializeAttrib(map<string,string> &dict, MemoryPoolAllocator<CrtAllocator> &alloc);
+	SerializeAttrib(map<string, string> &dict,
+	                MemoryPoolAllocator<CrtAllocator> &alloc);
 
-	map<string, string> ReadAttrib(Value &d);
+	map<string, string>
+	ReadAttrib(Value &d);
 }
 
 #endif //PASS_FDO_SECRETS_DOCUMENTHELPER_H

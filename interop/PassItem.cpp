@@ -10,6 +10,7 @@
 #include "DocumentHelper.h"
 #include "subprocess.h"
 #include "iostream"
+
 using namespace std;
 using namespace rapidjson;
 
@@ -56,8 +57,8 @@ PassItem::getAttrib() {
 }
 
 bool
-PassItem::hasAttrib(const std::string& key,
-                    const std::string& val) {
+PassItem::hasAttrib(const std::string &key,
+                    const std::string &val) {
 	if (attrib.count(key)) {
 		if (attrib[key] == val) return true;
 	}
@@ -91,12 +92,14 @@ PassItem::getSecretLength() {
 
 // TODO: check this code
 #define BUF_SIZE 1024
+
 bool
 PassItem::unlock() {
 	struct subprocess_s subprocess;
-	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
+	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path())
+	                                   .generic_string();
 	cout << path << endl;
-	const char *command_line[] = {"pass","show", path.c_str(), SUBPROCESS_NULL};
+	const char *command_line[] = {"pass", "show", path.c_str(), SUBPROCESS_NULL};
 	int res = subprocess_create(command_line, 0, &subprocess);
 	if (res != 0) {
 		throw std::runtime_error("Error while spawning pass");
@@ -113,15 +116,15 @@ PassItem::unlock() {
 	}
 	while (true) {
 		// read to buffer at proper offset and size
-		size_t r = fread(buf + totalRead, sizeof(uint8_t), (BUF_SIZE*buffers) - totalRead, f);
+		size_t r = fread(buf + totalRead, sizeof(uint8_t), (BUF_SIZE * buffers) - totalRead, f);
 		totalRead += r;
 
 		// check EOF
 		if (feof(f)) break;
 
 		// resize buffer if needed
-		if (totalRead == (BUF_SIZE*buffers)) {
-			auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t) *(totalRead + BUF_SIZE)));
+		if (totalRead == (BUF_SIZE * buffers)) {
+			auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t) * (totalRead + BUF_SIZE)));
 			if (nbuf == nullptr) {
 				free(buf);
 				subprocess_destroy(&subprocess);
@@ -133,8 +136,8 @@ PassItem::unlock() {
 	}
 
 	// make buffer proper size
-	if (totalRead != (BUF_SIZE*buffers)) {
-		auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t)*totalRead));
+	if (totalRead != (BUF_SIZE * buffers)) {
+		auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t) * totalRead));
 		if (nbuf == nullptr) {
 			free(buf);
 			subprocess_destroy(&subprocess);

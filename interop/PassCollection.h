@@ -15,15 +15,30 @@ class PassItem;
 class PassCollection {
 public:
 	explicit PassCollection(std::filesystem::path location_);
-	PassCollection(std::filesystem::path &location_, std::string  label_, std::string  id_, int64_t created_, std::string alias_);
 
-	std::string getId();
-	std::string getLabel();
-	std::string getAlias();
-	uint64_t getCreated() const;
+	PassCollection(std::filesystem::path &location_,
+	               std::string label_,
+	               std::string id_,
+	               int64_t created_,
+	               std::string alias_);
 
-	std::vector<std::shared_ptr<PassItem>> getItems();
-	std::vector<std::string> searchItems(const std::map<std::string, std::string> &attrib);
+	std::string
+	getId();
+
+	std::string
+	getLabel();
+
+	std::string
+	getAlias();
+
+	uint64_t
+	getCreated() const;
+
+	std::vector<std::shared_ptr<PassItem>>
+	getItems();
+
+	std::vector<std::string>
+	searchItems(const std::map<std::string, std::string> &attrib);
 
 	// TODO: Allow deletion
 	// TODO: Create items
