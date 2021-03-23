@@ -34,10 +34,6 @@ std::tuple<sdbus::Variant, sdbus::ObjectPath>
 SecretService::OpenSession(const std::string &algorithm,
                            const sdbus::Variant &input) {
 
-	while (!discarded.empty()) {
-		discarded.pop_back();
-	}
-
 	if (!algorithm.empty()) {
 		throw sdbus::Error("org.freedesktop.DBus.Error.NotSupported", "Only plain is supported");
 	}
@@ -190,4 +186,11 @@ SecretService::fromObjectPath(const std::vector<std::string>& paths) {
 		}
 	}
 	return items;
+}
+
+void
+SecretService::DiscardObjects() {
+	while (!discarded.empty()) {
+		discarded.pop_back();
+	}
 }

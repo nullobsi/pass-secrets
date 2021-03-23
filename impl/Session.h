@@ -20,7 +20,7 @@ public:
 
 private:
 	void
-	Close() override;
+	Close(sdbus::MethodCall msg);
 
 	std::weak_ptr<SecretService> parent;
 };

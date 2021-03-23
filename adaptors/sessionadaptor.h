@@ -23,13 +23,11 @@ protected:
     Session_adaptor(sdbus::IObject& object)
         : object_(object)
     {
-        object_.registerMethod("Close").onInterface(INTERFACE_NAME).withNoReply().implementedAs([this](){ return this->Close(); });
+
     }
 
     ~Session_adaptor() = default;
 
-private:
-    virtual void Close() = 0;
 
 private:
     sdbus::IObject& object_;

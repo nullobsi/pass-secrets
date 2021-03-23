@@ -22,6 +22,9 @@ public:
 	~SecretService();
 
 	void
+	DiscardObjects();
+
+	void
 	CloseSession(const std::string &path);
 
 protected:
