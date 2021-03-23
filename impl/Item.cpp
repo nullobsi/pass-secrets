@@ -5,6 +5,7 @@
 #include "Item.h"
 
 #include <utility>
+#include "Collection.h"
 
 bool
 Item::Locked() {
@@ -55,6 +56,8 @@ Item::Modified() {
 sdbus::ObjectPath
 Item::Delete() {
 	// TODO: Delete
+	parent.lock()->DiscardItem(this->backend->getId());
+	return sdbus::ObjectPath("/");
 }
 
 Item::Item(std::shared_ptr<PassItem> backend_,

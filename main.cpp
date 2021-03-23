@@ -13,7 +13,7 @@ main() {
 	conn->requestName("org.freedesktop.secrets");
 
 	auto service = std::make_shared<SecretService>(*conn, "/org/freedesktop/secrets");
-
+	service->InitCollections();
 	while(true){
 		if (!conn->processPendingRequest()) {
 			std::cerr << "There was an error process DBus events!" << std::endl;

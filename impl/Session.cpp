@@ -19,7 +19,9 @@ Session::Session(std::weak_ptr<SecretService> parent_,
 
 void
 Session::Close(sdbus::MethodCall msg) {
-	parent.lock()->CloseSession(this->getObjectPath());
+	parent.lock()->DiscardSession(this->getObjectPath());
 }
 
-Session::~Session() = default;
+Session::~Session() {
+	this->unregisterAdaptor();
+};

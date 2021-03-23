@@ -13,15 +13,7 @@
 using namespace std;
 
 SecretService::SecretService(sdbus::IConnection &conn,
-                             std::string path) : AdaptorInterfaces(conn, std::move(path)), sessions(), collections(),
-                                                 store() {
-
-	for (auto c : store.GetCollections()) {
-		auto id = c->getId();
-		auto collection = make_unique<Collection>(c, this->getObject().getConnection(),
-		                                          "/org/freedesktop/secrets/collection/" + id, this->weak_from_this());
-		collections.insert({id, move(collection)});
-	}
+                             std::string path) : AdaptorInterfaces(conn, std::move(path)) {
 
 	registerAdaptor();
 }
@@ -40,18 +32,11 @@ SecretService::OpenSession(const std::string &algorithm,
 
 	// TODO: find a way to track calling process
 	auto session = make_unique<Session>(this->weak_from_this(), this->getObject().getConnection(),
-	                                    "/org/freedesktop/secrets/session/" + nanoid::generate(
-			                                    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890_"));
+	                                    "/org/freedesktop/secrets/session/" + nanoid::generate());
 	auto sessionPath = session->getObjectPath();
 	sessions.insert({sessionPath, move(session)});
 
 	return {sdbus::Variant(""), sdbus::ObjectPath(sessionPath)};
-}
-
-void
-SecretService::CloseSession(const std::string &path) {
-	// TODO: better way to delete without segfault
-	discarded.push_back(move(sessions.extract(path).mapped()));
 }
 
 std::tuple<sdbus::ObjectPath, sdbus::ObjectPath>
@@ -189,8 +174,38 @@ SecretService::fromObjectPath(const std::vector<std::string>& paths) {
 }
 
 void
+SecretService::DiscardSession(const std::string &path) {
+	discardedSessions.push_back(move(sessions.extract(path).mapped()));
+}
+
+void
+SecretService::DiscardCollection(std::string id) {
+	std::cout << std::to_string(collections.count(id)) << std::endl;
+	discardedCollections.push_back(move(collections.extract(id).mapped()));
+}
+
+void
 SecretService::DiscardObjects() {
-	while (!discarded.empty()) {
-		discarded.pop_back();
+	while (!discardedSessions.empty()) {
+		discardedSessions.pop_back();
+	}
+	while (!discardedCollections.empty()) {
+		discardedCollections.pop_back();
+	}
+	for (const auto &entry : collections) {
+		entry.second->DiscardObjects();
 	}
 }
+
+void
+SecretService::InitCollections() {
+	for (auto c : store.GetCollections()) {
+		auto id = c->getId();
+		auto collection = make_shared<Collection>(c, this->getObject().getConnection(),
+		                                          "/org/freedesktop/secrets/collection/" + id, this->weak_from_this());
+		collection->InitItems();
+		collections.insert({id, move(collection)});
+	}
+}
+
+

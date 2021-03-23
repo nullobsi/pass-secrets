@@ -23,8 +23,17 @@ public:
 
 	~Collection();
 
+	void
+	InitItems();
+
+	void
+	DiscardItem(std::string id);
+
 	std::shared_ptr<PassCollection>
 	GetBacking();
+
+	void
+	DiscardObjects();
 
 	std::vector<std::shared_ptr<Item>>
 	InternalSearchItems(const std::map<std::string, std::string> &attributes);
@@ -61,10 +70,13 @@ public:
 	std::map<std::string, std::shared_ptr<Item>> &
 	getItemMap();
 
+
+
 private:
 	std::shared_ptr<PassCollection> backend;
 	std::weak_ptr<SecretService> parent;
 	std::map<std::string, std::shared_ptr<Item>> items;
+	std::vector<std::shared_ptr<Item>> discarded;
 };
 
 

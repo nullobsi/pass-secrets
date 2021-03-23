@@ -25,7 +25,13 @@ public:
 	DiscardObjects();
 
 	void
-	CloseSession(const std::string &path);
+	DiscardSession(const std::string &path);
+
+	void
+	DiscardCollection(std::string id);
+
+	void
+	InitCollections();
 
 protected:
 	std::tuple<sdbus::Variant, sdbus::ObjectPath>
@@ -67,10 +73,11 @@ protected:
 
 private:
 	std::map<std::string, std::unique_ptr<Session>> sessions;
-	std::vector<std::unique_ptr<Session>> discarded;
+	std::vector<std::unique_ptr<Session>> discardedSessions;
 
 	PassStore store;
-	std::map<std::string, std::unique_ptr<Collection>> collections;
+	std::map<std::string, std::shared_ptr<Collection>> collections;
+	std::vector<std::shared_ptr<Collection>> discardedCollections;
 
 	std::vector<std::shared_ptr<Item>>
 	fromObjectPath(const std::vector<std::string>& paths);

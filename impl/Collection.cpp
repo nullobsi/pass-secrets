@@ -16,9 +16,6 @@ Collection::Collection(std::shared_ptr<PassCollection> backend_,
 		: sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>(conn, std::move(path)),
 		  backend(std::move(backend_)), parent(std::move(parent_)) {
 	registerAdaptor();
-	for (const auto &item : backend->getItems()) {
-		items.insert({item->getId(), std::make_unique<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this())});
-	}
 }
 
 Collection::~Collection() {
@@ -28,6 +25,7 @@ Collection::~Collection() {
 sdbus::ObjectPath
 Collection::Delete() {
 	// TODO: Delete
+	parent.lock()->DiscardCollection(this->backend->getId());
 	return sdbus::ObjectPath("/");
 }
 
@@ -107,4 +105,23 @@ Collection::InternalSearchItems(const std::map<std::string, std::string> &attrib
 std::map<std::string, std::shared_ptr<Item>>
 &Collection::getItemMap() {
 	return items;
+}
+
+void
+Collection::DiscardObjects() {
+	while (!discarded.empty()) {
+		discarded.pop_back();
+	}
+}
+
+void
+Collection::InitItems() {
+	for (const auto &item : backend->getItems()) {
+		items.insert({item->getId(), std::make_unique<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this())});
+	}
+}
+
+void
+Collection::DiscardItem(std::string id) {
+	discarded.push_back(items.extract(id).mapped());
 }
