@@ -40,6 +40,9 @@ public:
 	std::vector<std::string>
 	searchItems(const std::map<std::string, std::string> &attrib);
 
+	void
+	Delete();
+
 	// TODO: Allow deletion
 	// TODO: Create items
 	// TODO: Set label

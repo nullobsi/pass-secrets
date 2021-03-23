@@ -24,7 +24,7 @@ Collection::~Collection() {
 
 sdbus::ObjectPath
 Collection::Delete() {
-	// TODO: Delete
+	backend->Delete();
 	parent.lock()->DiscardCollection(this->backend->getId());
 	return sdbus::ObjectPath("/");
 }

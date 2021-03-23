@@ -178,7 +178,6 @@ SecretService::DiscardSession(const std::string &path) {
 
 void
 SecretService::DiscardCollection(std::string id) {
-	std::cout << std::to_string(collections.count(id)) << std::endl;
 	discardedCollections.push_back(move(collections.extract(id).mapped()));
 }
 

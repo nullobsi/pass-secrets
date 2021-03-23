@@ -7,6 +7,7 @@
 #include "PassCollection.h"
 #include "DocumentHelper.h"
 #include "PassItem.h"
+#include "subprocess.h"
 
 using namespace std;
 using namespace rapidjson;
@@ -105,4 +106,28 @@ PassCollection::searchItems(const map<std::string, std::string> &attribs) {
 		}
 	}
 	return r;
+}
+
+void
+PassCollection::Delete() {
+	string path = (location).lexically_relative(location.parent_path().parent_path()).generic_string();
+	const char *command_line[] = {"/usr/bin/pass", "rm", "-rf", path.c_str(), nullptr};
+
+	struct subprocess_s subprocess;
+	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
+	if (res != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Error while spawning pass");
+	}
+	int rtn;
+	res = subprocess_join(&subprocess, &rtn);
+	if (res != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Error while joining with pass!");
+	}
+	if (rtn != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("pass returned an error while deleting!");
+	}
+	subprocess_destroy(&subprocess);
 }
