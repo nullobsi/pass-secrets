@@ -15,11 +15,10 @@ main() {
 	auto service = std::make_shared<SecretService>(*conn, "/org/freedesktop/secrets");
 
 	while(true){
-		std::cout << "\tProcessing..." << std::endl;
-		if (conn->processPendingRequest()) {
-			std::cout << "\tDone!" << std::endl;
+		if (!conn->processPendingRequest()) {
+			std::cerr << "There was an error process DBus events!" << std::endl;
+			return 1;
 		}
-
 		service->DiscardObjects();
 
 		auto dat = conn->getEventLoopPollData();
@@ -30,8 +29,10 @@ main() {
 		                           }};
 		auto timeout = dat.timeout_usec == (uint64_t) -1 ? (uint64_t)-1 : (dat.timeout_usec+999)/1000;
 		auto res = poll(polling, 1, timeout);
-		std::cout << "Timeout/Event" << std::endl;
-		std::cout << "\tn.Events: " + std::to_string(res) << std::endl;
+		if (res < 1 && errno == EINTR) {
+			std::cerr << "Got interrupt, exiting..." << std::endl;
+			return 0;
+		}
 	}
 }
 
