@@ -71,9 +71,10 @@ Collection::Label(const std::string &value) {
 
 bool
 Collection::Locked() {
-	return std::any_of(items.cbegin(), items.cend(), [](const std::pair<std::string, std::shared_ptr<Item>>& entry) -> bool {
-		return entry.second->Locked();
-	});
+	return std::any_of(items.cbegin(), items.cend(),
+	                   [](const std::pair<std::string, std::shared_ptr<Item>> &entry) -> bool {
+		                   return entry.second->Locked();
+	                   });
 }
 
 uint64_t
@@ -102,8 +103,8 @@ Collection::InternalSearchItems(const std::map<std::string, std::string> &attrib
 	return r;
 }
 
-std::map<std::string, std::shared_ptr<Item>>
-&Collection::getItemMap() {
+std::map<std::string, std::shared_ptr<Item>> &
+Collection::getItemMap() {
 	return items;
 }
 
@@ -117,7 +118,11 @@ Collection::DiscardObjects() {
 void
 Collection::InitItems() {
 	for (const auto &item : backend->getItems()) {
-		items.insert({item->getId(), std::make_unique<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this())});
+		items.insert({
+				             item->getId(), std::make_unique<Item>(item, this->getObject().getConnection(),
+				                                                   this->getObjectPath() + "/" + item->getId(),
+				                                                   weak_from_this())
+		             });
 	}
 }
 

@@ -80,7 +80,7 @@ private:
 	std::vector<std::shared_ptr<Collection>> discardedCollections;
 
 	std::vector<std::shared_ptr<Item>>
-	fromObjectPath(const std::vector<std::string>& paths);
+	fromObjectPath(const std::vector<std::string> &paths);
 };
 
 #endif //PASS_FDO_SECRETS_SECRETSERVICE_H

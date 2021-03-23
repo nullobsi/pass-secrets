@@ -64,8 +64,6 @@ SecretService::SearchItems(const std::map<std::string, std::string> &attributes)
 }
 
 
-
-
 std::tuple<std::vector<sdbus::ObjectPath>, sdbus::ObjectPath>
 SecretService::Unlock(const std::vector<sdbus::ObjectPath> &objects) {
 	// TODO: Prompt?
@@ -146,7 +144,7 @@ SecretService::Collections() {
 }
 
 std::vector<std::shared_ptr<Item>>
-SecretService::fromObjectPath(const std::vector<std::string>& paths) {
+SecretService::fromObjectPath(const std::vector<std::string> &paths) {
 	std::vector<std::shared_ptr<Item>> items;
 	for (const auto &objectPath : paths) {
 		auto oPath = std::filesystem::path((string)objectPath);
@@ -163,7 +161,7 @@ SecretService::fromObjectPath(const std::vector<std::string>& paths) {
 				auto itemId = oPath.filename().generic_string();
 				auto collId = oPath.parent_path().filename().generic_string();
 				// if exists
-				if (collections.count(collId) && collections[collId]->getItemMap().count(itemId))  {
+				if (collections.count(collId) && collections[collId]->getItemMap().count(itemId)) {
 					auto item = collections[collId]->getItemMap()[itemId];
 					items.push_back(item);
 				}

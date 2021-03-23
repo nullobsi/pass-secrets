@@ -17,6 +17,7 @@ public:
 	     sdbus::IConnection &conn,
 	     std::string path,
 	     std::weak_ptr<Collection> parent_);
+
 	~Item();
 
 	sdbus::ObjectPath
@@ -58,7 +59,8 @@ public:
 	uint64_t
 	Modified() override;
 
-	std::shared_ptr<PassItem> getBackend();
+	std::shared_ptr<PassItem>
+	getBackend();
 
 
 private:

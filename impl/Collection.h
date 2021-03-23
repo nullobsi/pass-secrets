@@ -14,7 +14,9 @@ class SecretService;
 
 class Item;
 
-class Collection : public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>, public std::enable_shared_from_this<Collection> {
+class Collection
+		: public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>,
+		  public std::enable_shared_from_this<Collection> {
 public:
 	Collection(std::shared_ptr<PassCollection> backend_,
 	           sdbus::IConnection &conn,
@@ -69,7 +71,6 @@ public:
 
 	std::map<std::string, std::shared_ptr<Item>> &
 	getItemMap();
-
 
 
 private:
