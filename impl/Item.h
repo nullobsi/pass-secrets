@@ -22,7 +22,6 @@ public:
 	sdbus::ObjectPath
 	getPath();
 
-protected:
 	sdbus::ObjectPath
 	Delete() override;
 
@@ -58,6 +57,8 @@ protected:
 
 	uint64_t
 	Modified() override;
+
+	std::shared_ptr<PassItem> getBackend();
 
 
 private:

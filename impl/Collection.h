@@ -26,10 +26,12 @@ public:
 	std::shared_ptr<PassCollection>
 	GetBacking();
 
+	std::vector<std::shared_ptr<Item>>
+	InternalSearchItems(const std::map<std::string, std::string> &attributes);
+
 	std::vector<sdbus::ObjectPath>
 	SearchItems(const std::map<std::string, std::string> &attributes) override;
 
-protected:
 	sdbus::ObjectPath
 	Delete() override;
 
@@ -56,10 +58,13 @@ protected:
 	uint64_t
 	Modified() override;
 
+	std::map<std::string, std::shared_ptr<Item>> &
+	getItemMap();
+
 private:
 	std::shared_ptr<PassCollection> backend;
 	std::weak_ptr<SecretService> parent;
-	std::map<std::string, std::unique_ptr<Item>> items;
+	std::map<std::string, std::shared_ptr<Item>> items;
 };
 
 

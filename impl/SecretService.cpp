@@ -8,6 +8,7 @@
 #include <utility>
 #include <iostream>
 #include <filesystem>
+#include "Item.h"
 
 using namespace std;
 
@@ -66,43 +67,72 @@ SecretService::CreateCollection(const std::map<std::string, sdbus::Variant> &pro
 
 std::tuple<std::vector<sdbus::ObjectPath>, std::vector<sdbus::ObjectPath>>
 SecretService::SearchItems(const std::map<std::string, std::string> &attributes) {
-	// TODO: Search all collections
 	vector<sdbus::ObjectPath> locked;
 	vector<sdbus::ObjectPath> unlocked;
-//	for (const auto &collection : collections) {
-//		collection.second->SearchItems(attributes)
-//	}
+	for (const auto &collection : collections) {
+		vector<shared_ptr<Item>> items = collection.second->InternalSearchItems(attributes);
+		for (const auto &item : items) {
+			if (item->Locked()) {
+				locked.push_back(item->getPath());
+			} else {
+				unlocked.push_back(item->getPath());
+			}
+		}
+	}
+	return std::tuple(unlocked, locked);
 }
+
+
+
 
 std::tuple<std::vector<sdbus::ObjectPath>, sdbus::ObjectPath>
 SecretService::Unlock(const std::vector<sdbus::ObjectPath> &objects) {
-	// TODO: Unlock
-	return std::tuple<std::vector<sdbus::ObjectPath>, sdbus::ObjectPath>();
+	// TODO: Prompt?
+	std::vector<sdbus::ObjectPath> unlocked;
+	for (const auto &item : fromObjectPath((const vector<string> &)objects)) {
+		if (!item->Locked() || item->getBackend()->unlock()) unlocked.push_back(item->getPath());
+	}
+
+	return std::tuple(unlocked, "/");
 }
 
 std::tuple<std::vector<sdbus::ObjectPath>, sdbus::ObjectPath>
 SecretService::Lock(const std::vector<sdbus::ObjectPath> &objects) {
-	// TODO: Lock
-	return std::tuple<std::vector<sdbus::ObjectPath>, sdbus::ObjectPath>();
+	// TODO: Prompt?
+	std::vector<sdbus::ObjectPath> locked;
+	for (const auto &item : fromObjectPath((const vector<string> &)objects)) {
+		// TODO: could this cause a segfault?
+		item->getBackend()->lock();
+		locked.push_back(item->getPath());
+	}
 }
 
 void
 SecretService::LockService() {
-	// TODO: Lock service
+	for (const auto &entry : collections) {
+		for (const auto &item : entry.second->GetBacking()->getItems()) {
+			item->lock();
+		}
+	}
 }
 
 sdbus::ObjectPath
 SecretService::ChangeLock(const sdbus::ObjectPath &collection) {
 	// TODO: Change lock
 	// this isn't mentioned in the specification (gnome keyring specific?)
-	return sdbus::ObjectPath();
+	return sdbus::ObjectPath("/");
 }
 
 std::map<sdbus::ObjectPath, sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>>
 SecretService::GetSecrets(const std::vector<sdbus::ObjectPath> &items,
                           const sdbus::ObjectPath &session) {
-	// TODO: Get secrets
-	return std::map<sdbus::ObjectPath, sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>>();
+	auto it = fromObjectPath((const vector<string> &)items);
+	std::map<sdbus::ObjectPath, sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>> retn;
+	for (const auto &item : it) {
+		auto res = item->GetSecret(session);
+		retn.insert({item->getPath(), res});
+	}
+	return retn;
 }
 
 sdbus::ObjectPath
@@ -132,4 +162,32 @@ SecretService::Collections() {
 	}
 
 	return cs;
+}
+
+std::vector<std::shared_ptr<Item>>
+SecretService::fromObjectPath(const std::vector<std::string>& paths) {
+	std::vector<std::shared_ptr<Item>> items;
+	for (const auto &objectPath : paths) {
+		auto oPath = std::filesystem::path((string)objectPath);
+		if (oPath.has_parent_path()) {
+			if (oPath.parent_path().filename() == "collection") { // Find all items
+				auto collId = oPath.filename().generic_string();
+				if (collections.count(collId)) {
+					for (const auto &item : collections[collId]->getItemMap()) {
+						items.push_back(item.second);
+					}
+				}
+			} else { // this should be a normal item
+				// obtain ids from path
+				auto itemId = oPath.filename().generic_string();
+				auto collId = oPath.parent_path().filename().generic_string();
+				// if exists
+				if (collections.count(collId) && collections[collId]->getItemMap().count(itemId))  {
+					auto item = collections[collId]->getItemMap()[itemId];
+					items.push_back(item);
+				}
+			}
+		}
+	}
+	return items;
 }

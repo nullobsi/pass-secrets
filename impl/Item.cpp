@@ -8,7 +8,7 @@
 
 bool
 Item::Locked() {
-	return backend->isUnlocked();
+	return !backend->isUnlocked();
 }
 
 std::map<std::string, std::string>
@@ -75,9 +75,8 @@ Item::~Item() {
 sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>
 Item::GetSecret(const sdbus::ObjectPath &session) {
 	if (!backend->isUnlocked()) {
-		backend->unlock();
-//		throw sdbus::Error("org.freedesktop.Secret.Error.IsLocked",
-//		                   "The object must be unlocked before this action can be carried out.");
+		throw sdbus::Error("org.freedesktop.Secret.Error.IsLocked",
+		                   "The object must be unlocked before this action can be carried out.");
 	}
 	auto cArr = backend->getSecret();
 	std::vector<uint8_t> secret(cArr, cArr + backend->getSecretLength());
@@ -98,4 +97,9 @@ Item::getPath() {
 void
 Item::SetSecret(const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string> &secret) {
 	// TODO: Set secret
+}
+
+std::shared_ptr<PassItem>
+Item::getBackend() {
+	return backend;
 }

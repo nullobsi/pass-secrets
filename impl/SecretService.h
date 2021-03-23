@@ -68,6 +68,9 @@ private:
 
 	PassStore store;
 	std::map<std::string, std::unique_ptr<Collection>> collections;
+
+	std::vector<std::shared_ptr<Item>>
+	fromObjectPath(const std::vector<std::string>& paths);
 };
 
 #endif //PASS_FDO_SECRETS_SECRETSERVICE_H

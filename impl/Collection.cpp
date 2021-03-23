@@ -73,8 +73,9 @@ Collection::Label(const std::string &value) {
 
 bool
 Collection::Locked() {
-	// TODO: Lock/unlock
-	return false;
+	return std::any_of(items.cbegin(), items.cend(), [](const std::pair<std::string, std::shared_ptr<Item>>& entry) -> bool {
+		return entry.second->Locked();
+	});
 }
 
 uint64_t
@@ -90,4 +91,20 @@ Collection::Modified() {
 std::shared_ptr<PassCollection>
 Collection::GetBacking() {
 	return backend;
+}
+
+std::vector<std::shared_ptr<Item>>
+Collection::InternalSearchItems(const std::map<std::string, std::string> &attributes) {
+	auto it = backend->searchItems(attributes);
+	std::vector<std::shared_ptr<Item>> r;
+	r.reserve(it.size());
+	for (const auto &id : it) {
+		r.push_back(items[id]);
+	}
+	return r;
+}
+
+std::map<std::string, std::shared_ptr<Item>>
+&Collection::getItemMap() {
+	return items;
 }

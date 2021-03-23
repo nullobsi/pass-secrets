@@ -90,16 +90,15 @@ PassItem::getSecretLength() {
 	return secretLength;
 }
 
-// TODO: check this code
-#define BUF_SIZE 1024
 
+#define BUF_SIZE 1024
 bool
 PassItem::unlock() {
-	struct subprocess_s subprocess;
 	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path())
 	                                   .generic_string();
-	cout << path << endl;
-	const char *command_line[] = {"/usr/bin/pass", "show", path.c_str(), NULL};
+	const char *command_line[] = {"/usr/bin/pass", "show", path.c_str(), nullptr};
+
+	struct subprocess_s subprocess;
 	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment | subprocess_option_enable_async, &subprocess);
 	if (res != 0) {
 		throw std::runtime_error("Error while spawning pass");
