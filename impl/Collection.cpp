@@ -5,7 +5,8 @@
 #include "Collection.h"
 #include "SecretService.h"
 #include "Item.h"
-
+#include "CollectionProxy.h"
+#include <memory>
 #include <utility>
 
 
@@ -15,6 +16,7 @@ Collection::Collection(std::shared_ptr<PassCollection> backend_,
                        std::weak_ptr<SecretService> parent_)
 		: sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>(conn, std::move(path)),
 		  backend(std::move(backend_)), parent(std::move(parent_)) {
+
 	registerAdaptor();
 }
 
@@ -148,9 +150,23 @@ Collection::InitItems() {
 				                                                   weak_from_this())
 		             });
 	}
+	updateAlias();
 }
+
+
 
 void
 Collection::DiscardItem(std::string id) {
 	discarded.push_back(items.extract(id).mapped());
+}
+
+void
+Collection::updateAlias() {
+	if (backend->getAlias().empty()) {
+		if (proxy) {
+			proxy.reset();
+		}
+	} else {
+		proxy = std::make_unique<CollectionProxy>(this->getObject().getConnection(), "/org/freedesktop/secrets/aliases/" + backend->getAlias(),weak_from_this());
+	}
 }

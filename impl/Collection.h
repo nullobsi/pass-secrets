@@ -11,7 +11,7 @@
 #include "../adaptors/collectionadaptor.h"
 
 class SecretService;
-
+class CollectionProxy;
 class Item;
 
 class Collection
@@ -72,12 +72,17 @@ public:
 	std::map<std::string, std::shared_ptr<Item>> &
 	getItemMap();
 
+	void
+	updateAlias();
+
 
 private:
 	std::shared_ptr<PassCollection> backend;
 	std::weak_ptr<SecretService> parent;
 	std::map<std::string, std::shared_ptr<Item>> items;
 	std::vector<std::shared_ptr<Item>> discarded;
+
+	std::unique_ptr<CollectionProxy> proxy;
 };
 
 

@@ -137,8 +137,9 @@ SecretService::SetAlias(const std::string &name,
 	if (!collections.count(collId)) {
 		throw sdbus::Error("org.freedesktop.Secret.Error.NoSuchObject", "No such item or collection exists.");
 	}
-	collections[collId]->GetBacking()->setLabel(name);
+	collections[collId]->GetBacking()->setAlias(name);
 	collections[collId]->GetBacking()->updateMetadata();
+	collections[collId]->updateAlias();
 }
 
 std::vector<sdbus::ObjectPath>
