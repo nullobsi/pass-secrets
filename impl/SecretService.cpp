@@ -128,7 +128,13 @@ SecretService::ReadAlias(const std::string &name) {
 void
 SecretService::SetAlias(const std::string &name,
                         const sdbus::ObjectPath &collection) {
-	// TODO: Set alias
+	std::filesystem::path objPath((string)collection);
+	auto collId = objPath.filename().generic_string();
+	if (!collections.count(collId)) {
+		throw sdbus::Error("org.freedesktop.Secret.Error.NoSuchObject", "No such item or collection exists.");
+	}
+	collections[collId]->GetBacking()->setLabel(name);
+	collections[collId]->GetBacking()->updateMetadata();
 }
 
 std::vector<sdbus::ObjectPath>

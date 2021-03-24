@@ -43,9 +43,18 @@ public:
 	void
 	Delete();
 
-	// TODO: Allow deletion
-	// TODO: Create items
-	// TODO: Set label
+	std::shared_ptr<PassItem>
+	CreateItem(uint8_t *data, size_t len, std::map<std::string, std::string> attrib, std::string itemLabel, std::string type);
+
+	void
+	updateMetadata();
+
+	void
+	setLabel(std::string n);
+
+	void
+	setAlias(std::string n);
+
 
 private:
 	std::filesystem::path location;

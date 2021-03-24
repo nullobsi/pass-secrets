@@ -5,6 +5,7 @@
 #include "Item.h"
 
 #include <utility>
+#include <cstring>
 #include "Collection.h"
 
 bool
@@ -17,10 +18,10 @@ Item::Attributes() {
 	return backend->getAttrib();
 }
 
-// TODO: Set attributes
 void
 Item::Attributes(const std::map<std::string, std::string> &value) {
-
+	backend->setAttrib(value);
+	backend->updateMetadata();
 }
 
 std::string
@@ -30,7 +31,8 @@ Item::Label() {
 
 void
 Item::Label(const std::string &value) {
-	// TODO: Set label
+	backend->setLabel(value);
+	backend->updateMetadata();
 }
 
 std::string
@@ -40,7 +42,8 @@ Item::Type() {
 
 void
 Item::Type(const std::string &value) {
-	// TODO: Set type
+	backend->setType(value);
+	backend->updateMetadata();
 }
 
 uint64_t
@@ -55,7 +58,7 @@ Item::Modified() {
 
 sdbus::ObjectPath
 Item::Delete() {
-	// TODO: Delete
+	backend->Delete();
 	parent.lock()->DiscardItem(this->backend->getId());
 	return sdbus::ObjectPath("/");
 }
@@ -99,7 +102,10 @@ Item::getPath() {
 
 void
 Item::SetSecret(const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string> &secret) {
-	// TODO: Set secret
+	auto data = secret.get<2>();
+	auto nData = (uint8_t *)malloc(sizeof(uint8_t) * data.size());
+	memcpy(nData, data.data(), sizeof(uint8_t) * data.size());
+	backend->setSecret(nData, data.size());
 }
 
 std::shared_ptr<PassItem>

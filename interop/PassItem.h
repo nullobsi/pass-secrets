@@ -11,6 +11,7 @@
 class PassItem {
 public:
 	explicit PassItem(std::filesystem::path location_);
+	PassItem(std::filesystem::path location_, std::string label_, uint64_t created_, std::string id_, std::map<std::string, std::string> attrib_, std::string type_);
 
 	~PassItem();
 
@@ -48,10 +49,23 @@ public:
 	uint8_t *
 	getSecret();
 
-	// TODO: Set attrib
-	// TODO: Set label
-	// TODO: Set type
-	// TODO: Allow deletion
+	void
+	setLabel(std::string n);
+
+	void
+	setAttrib(std::map<std::string, std::string> n);
+
+	void
+	setType(std::string n);
+
+	void
+	setSecret(uint8_t *data, size_t n);
+
+	void
+	updateMetadata();
+
+	void
+	Delete();
 
 
 private:

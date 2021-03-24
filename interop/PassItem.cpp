@@ -176,3 +176,106 @@ PassItem::lock() {
 PassItem::~PassItem() {
 	lock();
 }
+
+PassItem::PassItem(std::filesystem::path location_,
+                   std::string label_,
+                   uint64_t created_,
+                   std::string id_,
+                   std::map<std::string, std::string> attrib_,
+                   std::string type_) : location(move(location_)), label(move(label_)), created(created_), id(move(id_)), attrib(move(attrib_)), type(move(type_)){
+
+}
+
+void
+PassItem::updateMetadata() {
+	Document d;
+	d.SetObject();
+	d.AddMember("label", label, d.GetAllocator());
+	d.AddMember("created", created, d.GetAllocator());
+	d.AddMember("id", id, d.GetAllocator());
+	d.AddMember("type", type, d.GetAllocator());
+	d.AddMember("attrib", DHelper::SerializeAttrib(attrib, d.GetAllocator()), d.GetAllocator());
+
+	fstream f;
+	f.open(location / "item.json", ios::out | ios::trunc);
+	DHelper::WriteDocument(d, f);
+	f.close();
+}
+
+void
+PassItem::setLabel(std::string n) {
+	label = move(n);
+}
+
+void
+PassItem::setAttrib(std::map<std::string, std::string> n) {
+	attrib = move(n);
+}
+
+void
+PassItem::setType(std::string n) {
+	type = move(n);
+}
+
+void
+PassItem::setSecret(uint8_t *data,
+                    size_t n) {
+	secret = data;
+	secretLength = n;
+	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
+
+	const char *command_line[] = {"/usr/bin/pass", "insert", "-mf", path.c_str(), nullptr};
+
+	struct subprocess_s subprocess;
+	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
+	if (res != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Error while spawning pass");
+	}
+
+	auto writeIn = subprocess_stdin(&subprocess);
+	auto written = fwrite(secret, sizeof(uint8_t), secretLength, writeIn);
+	fclose(writeIn);
+
+	if (written != secretLength) {
+		subprocess_terminate(&subprocess);
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Could not write to pass!");
+	}
+
+	int rtn;
+	res = subprocess_join(&subprocess, &rtn);
+	if (res != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Error while joining with pass!");
+	}
+	if (rtn != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("pass returned an error while writing!");
+	}
+	subprocess_destroy(&subprocess);
+}
+
+void
+PassItem::Delete() {
+	string path = (location).lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
+	const char *command_line[] = {"/usr/bin/pass", "rm", "-rf", path.c_str(), nullptr};
+
+	struct subprocess_s subprocess;
+	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
+	if (res != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Error while spawning pass");
+	}
+	int rtn;
+	res = subprocess_join(&subprocess, &rtn);
+	if (res != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("Error while joining with pass!");
+	}
+	if (rtn != 0) {
+		subprocess_destroy(&subprocess);
+		throw std::runtime_error("pass returned an error while deleting!");
+	}
+	subprocess_destroy(&subprocess);
+}

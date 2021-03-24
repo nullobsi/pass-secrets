@@ -44,8 +44,31 @@ std::tuple<sdbus::ObjectPath, sdbus::ObjectPath>
 Collection::CreateItem(const std::map<std::string, sdbus::Variant> &properties,
                        const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string> &secret,
                        const bool &replace) {
-	// TODO: Create items
-	return std::tuple<sdbus::ObjectPath, sdbus::ObjectPath>();
+	auto nAttrib = properties.count("org.freedesktop.Secret.Item.Attributes") && properties.at("org.freedesktop.Secret.Item.Attributes").containsValueOfType<std::map<std::string, std::string>>() ? properties.at("org.freedesktop.Secret.Item.Attributes").get<std::map<std::string, std::string>>() : std::map<std::string, std::string>();
+	auto nLabel = properties.count("org.freedesktop.Secret.Item.Label") && properties.at("org.freedesktop.Secret.Item.Label").containsValueOfType<std::string>() ? properties.at("org.freedesktop.Secret.Item.Label").get<std::string>() : "Secret";
+	auto nType = properties.count("org.freedesktop.Secret.Item.Type") && properties.at("org.freedesktop.Secret.Item.Type").containsValueOfType<std::string>() ? properties.at("org.freedesktop.Secret.Item.Type").get<std::string>() : "org.freedesktop.Secret";
+	auto existing = InternalSearchItems(nAttrib);
+	if (!existing.empty() && !replace) {
+		// TODO: this error is not part of spec
+		throw sdbus::Error("org.freedesktop.Secret.Error.ObjectExists", "Such an object already exists in the store");
+	}
+	auto data = secret.get<2>();
+	auto nData = (uint8_t *)malloc(data.size() * sizeof(uint8_t));
+	memcpy(nData, data.data(), data.size()*sizeof(uint8_t));
+
+	if (replace && !existing.empty()) {
+		auto item = existing[0]->getBackend();
+		item->setAttrib(std::move(nAttrib));
+		item->setLabel(std::move(nLabel));
+		item->setType(std::move(nType));
+		item->updateMetadata();
+		item->setSecret(nData, data.size());
+		return std::tuple(existing[0]->getPath(), "/");
+	}
+	auto item = this->backend->CreateItem(nData, data.size(), move(nAttrib), move(nLabel), move(nType));
+	auto nItem = std::make_shared<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this());
+	items.insert({item->getId(), nItem});
+	return std::tuple(nItem->getPath(), "/");
 }
 
 std::vector<sdbus::ObjectPath>
@@ -66,7 +89,8 @@ Collection::Label() {
 
 void
 Collection::Label(const std::string &value) {
-	// TODO: Set label
+	backend->setLabel(value);
+	backend->updateMetadata();
 }
 
 bool
