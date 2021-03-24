@@ -2,11 +2,13 @@
 // Created by nullobsi on 2021/03/22.
 //
 
+// TODO: Proxy item
 #include "Item.h"
 
 #include <utility>
 #include <cstring>
 #include "Collection.h"
+#include "ItemProxy.h"
 
 bool
 Item::Locked() {
@@ -116,4 +118,15 @@ Item::SetSecret(const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std
 std::shared_ptr<PassItem>
 Item::getBackend() {
 	return backend;
+}
+
+void
+Item::updateProxy(std::string proxiedCollection) {
+	if (proxiedCollection.empty()) {
+		if (proxy) {
+			proxy.reset();
+		}
+	} else {
+		proxy = std::make_unique<ItemProxy>(this->getObject().getConnection(), proxiedCollection + "/" + backend->getId(), weak_from_this());
+	}
 }

@@ -165,12 +165,17 @@ Collection::DiscardItem(std::string id) {
 
 void
 Collection::updateAlias() {
+	std::string path = "";
 	if (backend->getAlias().empty()) {
 		if (proxy) {
 			proxy.reset();
 		}
 	} else {
-		proxy = std::make_unique<CollectionProxy>(this->getObject().getConnection(), "/org/freedesktop/secrets/aliases/" + backend->getAlias(),weak_from_this());
+		path = "/org/freedesktop/secrets/aliases/" + backend->getAlias();
+		proxy = std::make_unique<CollectionProxy>(this->getObject().getConnection(), path, weak_from_this());
+	}
+	for (const auto &item : items) {
+		item.second->updateProxy(path);
 	}
 }
 

@@ -10,8 +10,9 @@
 #include "../adaptors/itemadaptor.h"
 
 class Collection;
+class ItemProxy;
 
-class Item : public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor> {
+class Item : public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor> , public std::enable_shared_from_this<Item> {
 public:
 	Item(std::shared_ptr<PassItem> backend_,
 	     sdbus::IConnection &conn,
@@ -62,10 +63,15 @@ public:
 	std::shared_ptr<PassItem>
 	getBackend();
 
+	void
+	updateProxy(std::string proxiedCollection);
+
 
 private:
 	std::shared_ptr<PassItem> backend;
 	std::weak_ptr<Collection> parent;
+
+	std::unique_ptr<ItemProxy> proxy;
 };
 
 
