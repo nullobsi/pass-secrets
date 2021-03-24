@@ -17,9 +17,9 @@ class PassStore {
 public:
 	PassStore();
 
-	void
+	std::shared_ptr<PassCollection>
 	CreateCollection(const std::string &label,
-	                 const std::string &name);
+	                 const std::string &alias);
 
 	std::vector<std::shared_ptr<PassCollection>>
 	GetCollections();
@@ -30,9 +30,6 @@ private:
 
 	// password store location
 	std::filesystem::path storePrefix;
-
-	void
-	addExistingCollection(std::filesystem::path location);
 
 	// collections
 	std::map<std::string, std::shared_ptr<PassCollection>> collections;

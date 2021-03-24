@@ -54,9 +54,9 @@ PassStore::createDefaultCollection() {
 	CreateCollection("Default Keyring", "default");
 }
 
-void
+std::shared_ptr<PassCollection>
 PassStore::CreateCollection(const std::string &label,
-                            const std::string &name) {
+                            const std::string &alias) {
 	using namespace rapidjson;
 	Document d;
 	d.SetObject();
@@ -68,16 +68,17 @@ PassStore::CreateCollection(const std::string &label,
 	d.AddMember("label", label, d.GetAllocator());
 	d.AddMember("created", created, d.GetAllocator());
 	d.AddMember("id", id, d.GetAllocator());
-	d.AddMember("alias", name, d.GetAllocator());
+	d.AddMember("alias", alias, d.GetAllocator());
 
-	filesystem::path location = storePrefix / name;
+	filesystem::path location = storePrefix / id;
 	fstream metadataFile;
 	metadataFile.open(location / "collection.json", ios::out | ios::trunc);
 	DHelper::WriteDocument(d, metadataFile);
 	metadataFile.close();
 
-	auto c = make_shared<PassCollection>(location, label, id, created, name);
+	auto c = make_shared<PassCollection>(location, label, id, created, alias);
 	collections.insert({id, c});
+	return c;
 }
 
 std::vector<std::shared_ptr<PassCollection>>

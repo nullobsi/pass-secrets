@@ -42,8 +42,11 @@ SecretService::OpenSession(const std::string &algorithm,
 std::tuple<sdbus::ObjectPath, sdbus::ObjectPath>
 SecretService::CreateCollection(const std::map<std::string, sdbus::Variant> &properties,
                                 const std::string &alias) {
-	// TODO: Create collection
-	return std::tuple<sdbus::ObjectPath, sdbus::ObjectPath>();
+	auto nLabel = properties.count("org.freedesktop.Secret.Collection.Label") && properties.at("org.freedesktop.Secret.Collection.Label").containsValueOfType<std::string>() ? properties.at("org.freedesktop.Secret.Collection.Label").get<std::string>() : "Collection";
+	auto nCollection = store.CreateCollection(nLabel, alias);
+	auto coll = make_shared<Collection>(nCollection, this->getObject().getConnection(), "/org/freedesktop/secrets/collection/" + nCollection->getId(), weak_from_this());
+	collections.insert({nCollection->getId(), coll});
+	return std::tuple(coll->getObjectPath(), "/");
 }
 
 std::tuple<std::vector<sdbus::ObjectPath>, std::vector<sdbus::ObjectPath>>
@@ -84,6 +87,7 @@ SecretService::Lock(const std::vector<sdbus::ObjectPath> &objects) {
 		item->getBackend()->lock();
 		locked.push_back(item->getPath());
 	}
+	return std::tuple(locked, "/");
 }
 
 void
