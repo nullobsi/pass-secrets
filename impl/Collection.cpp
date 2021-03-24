@@ -160,6 +160,7 @@ void
 Collection::DiscardItem(std::string id) {
 	auto ptr = items.extract(id).mapped();
 	ItemDeleted(ptr->getPath());
+	backend->RemoveItem(ptr->getBackend()->getId());
 	discarded.push_back(move(ptr));
 }
 

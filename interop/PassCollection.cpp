@@ -152,7 +152,6 @@ PassCollection::CreateItem(uint8_t *data,
 
 	auto writeIn = subprocess_stdin(&subprocess);
 	auto written = fwrite(data, sizeof(uint8_t), len, writeIn);
-	fclose(writeIn);
 
 	if (written != len) {
 		subprocess_terminate(&subprocess);
@@ -185,8 +184,9 @@ PassCollection::CreateItem(uint8_t *data,
 	f.open(location / itemId / "item.json", ios::trunc | ios::out);
 	DHelper::WriteDocument(d, f);
 	f.close();
-
-	return make_shared<PassItem>(std::move(location), std::move(itemLabel), itemCreated, std::move(itemId), std::move(attrib), std::move(type));
+	auto final = make_shared<PassItem>(std::move(location), std::move(itemLabel), itemCreated, std::move(itemId), std::move(attrib), std::move(type));
+	items.insert({final->getId(), final});
+	return final;
 }
 
 void
@@ -212,4 +212,9 @@ PassCollection::setLabel(std::string n) {
 void
 PassCollection::setAlias(std::string n) {
 	alias = move(n);
+}
+
+void
+PassCollection::RemoveItem(std::string id) {
+	items.extract(id);
 }

@@ -55,6 +55,8 @@ public:
 	void
 	setAlias(std::string n);
 
+	void
+	RemoveItem(std::string id);
 
 private:
 	std::filesystem::path location;

@@ -235,7 +235,6 @@ PassItem::setSecret(uint8_t *data,
 
 	auto writeIn = subprocess_stdin(&subprocess);
 	auto written = fwrite(secret, sizeof(uint8_t), secretLength, writeIn);
-	fclose(writeIn);
 
 	if (written != secretLength) {
 		subprocess_terminate(&subprocess);
