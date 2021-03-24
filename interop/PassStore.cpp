@@ -27,6 +27,8 @@ PassStore::PassStore() {
 		filesystem::create_directory(storePrefix);
 	}
 
+	bool hasDefault = false;
+
 	for (auto &entry : filesystem::directory_iterator(storePrefix)) {
 		if (entry.is_directory()) {
 			if (filesystem::exists(entry.path() / "collection.json")) {
@@ -34,23 +36,18 @@ PassStore::PassStore() {
 					auto collection = make_shared<PassCollection>(entry.path());
 					collections.insert({collection->getId(), collection});
 					cout << "Loaded collection " + entry.path().generic_string() << endl;
+					if (collection->getAlias() == "default") hasDefault = true;
 				} catch (std::runtime_error &e) {
 					cerr << e.what() << endl;
 				}
 			}
 		}
 	}
-
-	if (!filesystem::exists(storePrefix / "default" / "collection.json")) {
-		createDefaultCollection();
-	}
+	if (!hasDefault) createDefaultCollection();
 }
 
 void
 PassStore::createDefaultCollection() {
-	if (!filesystem::exists(storePrefix / "default"))
-		filesystem::create_directory(storePrefix / "default");
-
 	CreateCollection("Default Keyring", "default");
 }
 
@@ -71,6 +68,9 @@ PassStore::CreateCollection(const std::string &label,
 	d.AddMember("alias", alias, d.GetAllocator());
 
 	filesystem::path location = storePrefix / id;
+	if (!filesystem::exists(location)) {
+		filesystem::create_directory(location);
+	}
 	fstream metadataFile;
 	metadataFile.open(location / "collection.json", ios::out | ios::trunc);
 	DHelper::WriteDocument(d, metadataFile);
