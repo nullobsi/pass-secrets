@@ -26,7 +26,7 @@ std::tuple<sdbus::Variant, sdbus::ObjectPath>
 SecretService::OpenSession(const std::string &algorithm,
                            const sdbus::Variant &input) {
 
-	if (!algorithm.empty()) {
+	if (!algorithm.empty() && algorithm != "plain") {
 		throw sdbus::Error("org.freedesktop.DBus.Error.NotSupported", "Only plain is supported");
 	}
 
