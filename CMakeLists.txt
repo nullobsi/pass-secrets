@@ -8,6 +8,6 @@ add_subdirectory("nanoid_cpp")
 
 find_package(sdbus-c++ REQUIRED)
 
-add_executable(pass-secrets main.cpp impl/SecretService.cpp impl/SecretService.h impl/Session.cpp impl/Session.h interop/PassStore.cpp interop/PassStore.h interop/PassCollection.cpp interop/PassCollection.h interop/PassItem.cpp interop/PassItem.h interop/DocumentHelper.h interop/DocumentHelper.cpp impl/Collection.cpp impl/Collection.h impl/Item.cpp impl/Item.h impl/CollectionProxy.cpp impl/CollectionProxy.h)
+add_executable(pass-secrets main.cpp impl/SecretService.cpp impl/SecretService.h impl/Session.cpp impl/Session.h interop/PassStore.cpp interop/PassStore.h interop/PassCollection.cpp interop/PassCollection.h interop/PassItem.cpp interop/PassItem.h interop/DocumentHelper.h interop/DocumentHelper.cpp impl/Collection.cpp impl/Collection.h impl/Item.cpp impl/Item.h impl/CollectionProxy.cpp impl/CollectionProxy.h impl/ItemProxy.cpp impl/ItemProxy.h)
 target_link_libraries(pass-secrets PRIVATE SDBusCpp::sdbus-c++ nanoid)
 target_compile_definitions(pass-secrets PRIVATE RAPIDJSON_HAS_STDSTRING)

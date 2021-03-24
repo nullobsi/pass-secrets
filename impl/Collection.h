@@ -75,6 +75,15 @@ public:
 	void
 	updateAlias();
 
+	void
+	ItemCreated(const sdbus::ObjectPath& item);
+
+	void
+	ItemDeleted(const sdbus::ObjectPath& item);
+
+	void
+	ItemChanged(const sdbus::ObjectPath& item);
+
 
 private:
 	std::shared_ptr<PassCollection> backend;

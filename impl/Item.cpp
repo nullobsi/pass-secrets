@@ -22,6 +22,7 @@ void
 Item::Attributes(const std::map<std::string, std::string> &value) {
 	backend->setAttrib(value);
 	backend->updateMetadata();
+	parent.lock()->ItemChanged(getPath());
 }
 
 std::string
@@ -33,6 +34,7 @@ void
 Item::Label(const std::string &value) {
 	backend->setLabel(value);
 	backend->updateMetadata();
+	parent.lock()->ItemChanged(getPath());
 }
 
 std::string
@@ -44,6 +46,7 @@ void
 Item::Type(const std::string &value) {
 	backend->setType(value);
 	backend->updateMetadata();
+	parent.lock()->ItemChanged(getPath());
 }
 
 uint64_t
@@ -106,6 +109,8 @@ Item::SetSecret(const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std
 	auto nData = (uint8_t *)malloc(sizeof(uint8_t) * data.size());
 	memcpy(nData, data.data(), sizeof(uint8_t) * data.size());
 	backend->setSecret(nData, data.size());
+
+	parent.lock()->ItemChanged(getPath());
 }
 
 std::shared_ptr<PassItem>

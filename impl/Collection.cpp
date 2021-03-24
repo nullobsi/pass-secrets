@@ -70,6 +70,7 @@ Collection::CreateItem(const std::map<std::string, sdbus::Variant> &properties,
 	auto item = this->backend->CreateItem(nData, data.size(), move(nAttrib), move(nLabel), move(nType));
 	auto nItem = std::make_shared<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this());
 	items.insert({item->getId(), nItem});
+	ItemCreated(nItem->getPath());
 	return std::tuple(nItem->getPath(), "/");
 }
 
@@ -157,7 +158,9 @@ Collection::InitItems() {
 
 void
 Collection::DiscardItem(std::string id) {
-	discarded.push_back(items.extract(id).mapped());
+	auto ptr = items.extract(id).mapped();
+	ItemDeleted(ptr->getPath());
+	discarded.push_back(move(ptr));
 }
 
 void
@@ -169,4 +172,23 @@ Collection::updateAlias() {
 	} else {
 		proxy = std::make_unique<CollectionProxy>(this->getObject().getConnection(), "/org/freedesktop/secrets/aliases/" + backend->getAlias(),weak_from_this());
 	}
+}
+
+// TODO: do proxies have to use proxied item path?
+void
+Collection::ItemCreated(const sdbus::ObjectPath &item) {
+	emitItemCreated(item);
+	if (proxy) proxy->emitItemCreated(item);
+}
+
+void
+Collection::ItemDeleted(const sdbus::ObjectPath &item) {
+	emitItemDeleted(item);
+	if (proxy) proxy->emitItemDeleted(item);
+}
+
+void
+Collection::ItemChanged(const sdbus::ObjectPath &item) {
+	emitItemChanged(item);
+	if (proxy) proxy->emitItemChanged(item);
 }
