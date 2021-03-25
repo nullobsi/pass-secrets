@@ -1,5 +1,18 @@
 # pass-secrets
-CLI application that listens on org.freedesktop.secrets to provide the Freedesktop Secrets backend using pass.
+CLI Application that provides the Freedesktop Secret Service using Pass as its backend!
 
 ## Status
-Currently still under development.
+Currently working to store secrets with protonmail-bridge. I have not done tests with other applications; if it doesn't work, please open an issue!
+
+## How to build
+pass-secrets requires pass and sdbus-c++ to be installed on your machine. Rapidjson and nanoid are included in the repo.
+
+```
+cd pass-secrets
+mkdir build
+cd build
+cmake ..
+make
+```
+
+The binary generated can be installed anywhere.
