@@ -188,7 +188,7 @@ PassCollection::CreateItem(uint8_t *data,
 	f.open(location / itemId / "item.json", ios::trunc | ios::out);
 	DHelper::WriteDocument(d, f);
 	f.close();
-	auto final = make_shared<PassItem>(std::move(location), std::move(itemLabel), itemCreated, std::move(itemId), std::move(attrib), std::move(type));
+	auto final = make_shared<PassItem>(std::move(location), std::move(itemLabel), itemCreated, std::move(itemId), std::move(attrib), std::move(type), data, len);
 	items.insert({final->getId(), final});
 	return final;
 }

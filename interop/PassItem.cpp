@@ -182,7 +182,9 @@ PassItem::PassItem(std::filesystem::path location_,
                    uint64_t created_,
                    std::string id_,
                    std::map<std::string, std::string> attrib_,
-                   std::string type_) : location(move(location_)), label(move(label_)), created(created_), id(move(id_)), attrib(move(attrib_)), type(move(type_)){
+                   std::string type_,
+                   uint8_t *secret_,
+                   size_t secretLen_) : location(move(location_)), label(move(label_)), created(created_), id(move(id_)), attrib(move(attrib_)), type(move(type_)), secret(secret_), secretLength(secretLen_){
 
 }
 
@@ -278,3 +280,4 @@ PassItem::Delete() {
 	}
 	subprocess_destroy(&subprocess);
 }
+
