@@ -69,6 +69,7 @@ Collection::CreateItem(const std::map<std::string, sdbus::Variant> &properties,
 	}
 	auto item = this->backend->CreateItem(nData, data.size(), move(nAttrib), move(nLabel), move(nType));
 	auto nItem = std::make_shared<Item>(item, this->getObject().getConnection(), this->getObjectPath() + "/" + item->getId(), weak_from_this());
+	updateItem(nItem);
 	items.insert({item->getId(), nItem});
 	ItemCreated(nItem->getPath());
 	return std::tuple(nItem->getPath(), "/");
@@ -177,6 +178,14 @@ Collection::updateAlias() {
 	}
 	for (const auto &item : items) {
 		item.second->updateProxy(path);
+	}
+}
+
+void
+Collection::updateItem(std::shared_ptr<Item> item) {
+	if (!backend->getAlias().empty()) {
+		auto path = "/org/freedesktop/secrets/aliases/" + backend->getAlias();
+		item->updateProxy(path);
 	}
 }
 

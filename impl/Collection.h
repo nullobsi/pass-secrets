@@ -76,6 +76,9 @@ public:
 	updateAlias();
 
 	void
+	updateItem(std::shared_ptr<Item> item);
+
+	void
 	ItemCreated(const sdbus::ObjectPath& item);
 
 	void
