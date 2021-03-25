@@ -58,7 +58,7 @@ Item::Created() {
 
 uint64_t
 Item::Modified() {
-	return 0;
+	return backend->getModified();
 }
 
 sdbus::ObjectPath
@@ -97,7 +97,7 @@ Item::GetSecret(const sdbus::ObjectPath &session) {
 			std::tuple<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>(session,
 			                                                                                       std::vector<uint8_t>(),
 			                                                                                       secret,
-			                                                                                       "text/plain; charset=utf8"));
+			                                                                                       "text/plain"));
 }
 
 sdbus::ObjectPath

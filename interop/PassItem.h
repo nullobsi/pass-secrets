@@ -11,12 +11,15 @@
 class PassItem {
 public:
 	explicit PassItem(std::filesystem::path location_);
-	PassItem(std::filesystem::path location_, std::string label_, uint64_t created_, std::string id_, std::map<std::string, std::string> attrib_, std::string type_, uint8_t *secret_, size_t secretLen_);
+	PassItem(std::filesystem::path location_, std::string label_, uint64_t created_, std::string id_, std::map<std::string, std::string> attrib_, std::string type_, uint8_t *secret_, size_t secretLen_, uint64_t modified_);
 
 	~PassItem();
 
 	uint64_t
 	getCreated();
+
+	uint64_t
+	getModified();
 
 	std::map<std::string, std::string>
 	getAttrib();
@@ -74,6 +77,7 @@ private:
 	// info
 	std::map<std::string, std::string> attrib;
 	uint64_t created;
+	uint64_t modified;
 	std::string label;
 	std::string id;
 	std::string type;

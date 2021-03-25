@@ -10,6 +10,8 @@
 
 using namespace std;
 
+string PassStore::passLocation;
+
 PassStore::PassStore() {
 	auto storeLoc = getenv("PASSWORD_STORE_DIR");
 	auto homeDir = getenv("HOME");
@@ -44,6 +46,29 @@ PassStore::PassStore() {
 		}
 	}
 	if (!hasDefault) createDefaultCollection();
+
+	if (passLocation.empty()) {
+		namespace fs = std::filesystem;
+		stringstream path = stringstream(getenv("PATH"));
+		vector<string> pathEntries;
+		string token;
+		while (getline(path, token, ':')) {
+			pathEntries.push_back(token);
+		}
+		for (const auto &dirName : pathEntries) {
+			fs::directory_iterator i(dirName);
+			for (const auto &file : i) {
+				if (file.is_regular_file() && file.path().filename() == "pass") {
+					std::cout << "Found pass at " + file.path().string() << std::endl;
+					passLocation = file.path().string();
+					goto finish;
+				}
+			}
+		}
+		throw std::runtime_error("Pass not found in path!");
+		finish:
+		return;
+	}
 }
 
 void

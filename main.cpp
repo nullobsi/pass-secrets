@@ -5,11 +5,9 @@
 #include <iostream>
 #include "impl/SecretService.h"
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "EndlessLoop"
-
 int
 main() {
+
 	auto conn = sdbus::createSessionBusConnection();
 	conn->requestName("org.freedesktop.secrets");
 
@@ -34,5 +32,3 @@ main() {
 		}
 	}
 }
-
-#pragma clang diagnostic pop

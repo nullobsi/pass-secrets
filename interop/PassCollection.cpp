@@ -9,6 +9,7 @@
 #include "PassItem.h"
 #include "subprocess.h"
 #include "nanoid/nanoid.h"
+#include "PassStore.h"
 
 using namespace std;
 using namespace rapidjson;
@@ -115,7 +116,7 @@ PassCollection::searchItems(const map<std::string, std::string> &attribs) {
 void
 PassCollection::Delete() {
 	string path = (location).lexically_relative(location.parent_path().parent_path()).generic_string();
-	const char *command_line[] = {"/usr/bin/pass", "rm", "-rf", path.c_str(), nullptr};
+	const char *command_line[] = {PassStore::passLocation.c_str(), "rm", "-rf", path.c_str(), nullptr};
 
 	struct subprocess_s subprocess;
 	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
@@ -145,7 +146,7 @@ PassCollection::CreateItem(uint8_t *data,
 	string itemId = nanoid::generate();
 	string path = (location / itemId / "secret").lexically_relative(location.parent_path().parent_path()).generic_string();
 
-	const char *command_line[] = {"/usr/bin/pass", "insert", "-mf", path.c_str(), nullptr};
+	const char *command_line[] = {PassStore::passLocation.c_str(), "insert", "-mf", path.c_str(), nullptr};
 
 	struct subprocess_s subprocess;
 	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
@@ -183,12 +184,13 @@ PassCollection::CreateItem(uint8_t *data,
 	d.AddMember("id", itemId, d.GetAllocator());
 	d.AddMember("type", type, d.GetAllocator());
 	d.AddMember("attrib", DHelper::SerializeAttrib(attrib, d.GetAllocator()), d.GetAllocator());
+	d.AddMember("modified", itemCreated, d.GetAllocator());
 
 	fstream f;
 	f.open(location / itemId / "item.json", ios::trunc | ios::out);
 	DHelper::WriteDocument(d, f);
 	f.close();
-	auto final = make_shared<PassItem>(std::move(location), std::move(itemLabel), itemCreated, std::move(itemId), std::move(attrib), std::move(type), data, len);
+	auto final = make_shared<PassItem>(location / itemId, std::move(itemLabel), itemCreated, std::move(itemId), std::move(attrib), std::move(type), data, len, itemCreated);
 	items.insert({final->getId(), final});
 	return final;
 }

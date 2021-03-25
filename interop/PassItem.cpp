@@ -10,6 +10,7 @@
 #include "DocumentHelper.h"
 #include "subprocess.h"
 #include "iostream"
+#include "PassStore.h"
 
 using namespace std;
 using namespace rapidjson;
@@ -27,9 +28,11 @@ PassItem::PassItem(std::filesystem::path location_) : location(move(location_)) 
 	if (!d.HasMember("id") || !d["id"].IsString()) goto err;
 	if (!d.HasMember("type") || !d["type"].IsString()) goto err;
 	if (!d.HasMember("attrib") || !d["attrib"].IsObject()) goto err;
+	if (!d.HasMember("modified") || !d["modified"].IsUint64()) goto err;
 
 	label = d["label"].GetString();
 	created = d["created"].GetUint64();
+	modified = d["modified"].GetUint64();
 	id = d["id"].GetString();
 	type = d["type"].GetString();
 	try {
@@ -97,7 +100,7 @@ bool
 PassItem::unlock() {
 	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path())
 	                                   .generic_string();
-	const char *command_line[] = {"/usr/bin/pass", "show", path.c_str(), nullptr};
+	const char *command_line[] = {PassStore::passLocation.c_str(), "show", path.c_str(), nullptr};
 
 	struct subprocess_s subprocess;
 	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment
@@ -184,7 +187,8 @@ PassItem::PassItem(std::filesystem::path location_,
                    std::map<std::string, std::string> attrib_,
                    std::string type_,
                    uint8_t *secret_,
-                   size_t secretLen_) : location(move(location_)), label(move(label_)), created(created_), id(move(id_)), attrib(move(attrib_)), type(move(type_)), secret(secret_), secretLength(secretLen_){
+                   size_t secretLen_,
+                   uint64_t modified_) : location(move(location_)), label(move(label_)), created(created_), id(move(id_)), attrib(move(attrib_)), type(move(type_)), secret(secret_), secretLength(secretLen_), modified(modified_){
 
 }
 
@@ -194,6 +198,7 @@ PassItem::updateMetadata() {
 	d.SetObject();
 	d.AddMember("label", label, d.GetAllocator());
 	d.AddMember("created", created, d.GetAllocator());
+	d.AddMember("modified", modified, d.GetAllocator());
 	d.AddMember("id", id, d.GetAllocator());
 	d.AddMember("type", type, d.GetAllocator());
 	d.AddMember("attrib", DHelper::SerializeAttrib(attrib, d.GetAllocator()), d.GetAllocator());
@@ -206,27 +211,31 @@ PassItem::updateMetadata() {
 
 void
 PassItem::setLabel(std::string n) {
+	modified = (uint64_t)time(nullptr);
 	label = move(n);
 }
 
 void
 PassItem::setAttrib(std::map<std::string, std::string> n) {
+	modified = (uint64_t)time(nullptr);
 	attrib = move(n);
 }
 
 void
 PassItem::setType(std::string n) {
+	modified = (uint64_t)time(nullptr);
 	type = move(n);
 }
 
 void
 PassItem::setSecret(uint8_t *data,
                     size_t n) {
+	modified = (uint64_t)time(nullptr);
 	secret = data;
 	secretLength = n;
 	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
 
-	const char *command_line[] = {"/usr/bin/pass", "insert", "-mf", path.c_str(), nullptr};
+	const char *command_line[] = {PassStore::passLocation.c_str(), "insert", "-mf", path.c_str(), nullptr};
 
 	struct subprocess_s subprocess;
 	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
@@ -260,7 +269,7 @@ PassItem::setSecret(uint8_t *data,
 void
 PassItem::Delete() {
 	string path = (location).lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
-	const char *command_line[] = {"/usr/bin/pass", "rm", "-rf", path.c_str(), nullptr};
+	const char *command_line[] = {PassStore::passLocation.c_str(), "rm", "-rf", path.c_str(), nullptr};
 
 	struct subprocess_s subprocess;
 	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
@@ -279,5 +288,10 @@ PassItem::Delete() {
 		throw std::runtime_error("pass returned an error while deleting!");
 	}
 	subprocess_destroy(&subprocess);
+}
+
+uint64_t
+PassItem::getModified() {
+	return modified;
 }
 

@@ -8,6 +8,7 @@
 #include "../interop/PassCollection.h"
 #include <sdbus-c++/sdbus-c++.h>
 #include <utility>
+#include <sdbus-c++/StandardInterfaces.h>
 #include "../adaptors/collectionadaptor.h"
 
 class SecretService;
@@ -15,7 +16,7 @@ class CollectionProxy;
 class Item;
 
 class Collection
-		: public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>,
+		: public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor, sdbus::Properties_adaptor>,
 		  public std::enable_shared_from_this<Collection> {
 public:
 	Collection(std::shared_ptr<PassCollection> backend_,

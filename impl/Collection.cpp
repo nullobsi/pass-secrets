@@ -14,9 +14,8 @@ Collection::Collection(std::shared_ptr<PassCollection> backend_,
                        sdbus::IConnection &conn,
                        std::string path,
                        std::weak_ptr<SecretService> parent_)
-		: sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor>(conn, std::move(path)),
+		: sdbus::AdaptorInterfaces<org::freedesktop::Secret::Collection_adaptor, sdbus::Properties_adaptor>(conn, std::move(path)),
 		  backend(std::move(backend_)), parent(std::move(parent_)) {
-
 	registerAdaptor();
 }
 
@@ -48,7 +47,7 @@ Collection::CreateItem(const std::map<std::string, sdbus::Variant> &properties,
                        const bool &replace) {
 	auto nAttrib = properties.count("org.freedesktop.Secret.Item.Attributes") && properties.at("org.freedesktop.Secret.Item.Attributes").containsValueOfType<std::map<std::string, std::string>>() ? properties.at("org.freedesktop.Secret.Item.Attributes").get<std::map<std::string, std::string>>() : std::map<std::string, std::string>();
 	auto nLabel = properties.count("org.freedesktop.Secret.Item.Label") && properties.at("org.freedesktop.Secret.Item.Label").containsValueOfType<std::string>() ? properties.at("org.freedesktop.Secret.Item.Label").get<std::string>() : "Secret";
-	auto nType = properties.count("org.freedesktop.Secret.Item.Type") && properties.at("org.freedesktop.Secret.Item.Type").containsValueOfType<std::string>() ? properties.at("org.freedesktop.Secret.Item.Type").get<std::string>() : "org.freedesktop.Secret";
+	auto nType = properties.count("org.freedesktop.Secret.Item.Type") && properties.at("org.freedesktop.Secret.Item.Type").containsValueOfType<std::string>() ? properties.at("org.freedesktop.Secret.Item.Type").get<std::string>() : (nAttrib.count("xdg:schema") ? nAttrib["xdg:schema"] : "org.freedesktop.Secret.Generic");
 	auto existing = InternalSearchItems(nAttrib);
 	if (!existing.empty() && !replace) {
 		// TODO: this error is not part of spec
@@ -65,6 +64,7 @@ Collection::CreateItem(const std::map<std::string, sdbus::Variant> &properties,
 		item->setType(std::move(nType));
 		item->updateMetadata();
 		item->setSecret(nData, data.size());
+		ItemCreated(existing[0]->getPath());
 		return std::tuple(existing[0]->getPath(), "/");
 	}
 	auto item = this->backend->CreateItem(nData, data.size(), move(nAttrib), move(nLabel), move(nType));
@@ -193,6 +193,7 @@ Collection::updateItem(std::shared_ptr<Item> item) {
 void
 Collection::ItemCreated(const sdbus::ObjectPath &item) {
 	emitItemCreated(item);
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Collection", {"Items"});
 	if (proxy) proxy->emitItemCreated(item);
 }
 

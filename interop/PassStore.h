@@ -24,6 +24,8 @@ public:
 	std::vector<std::shared_ptr<PassCollection>>
 	GetCollections();
 
+	static std::string passLocation;
+
 private:
 	void
 	createDefaultCollection();
