@@ -99,10 +99,14 @@ PassCollection::searchItems(const map<std::string, std::string> &attribs) {
 	std::vector<std::string> r;
 	for (const auto &entry : items) {
 		auto itemAttrib = entry.second->getAttrib();
+		bool match = true;
 		for (const auto &attrib : attribs) {
-			if (itemAttrib.count(attrib.first) && itemAttrib[attrib.first] == attrib.second) {
-				r.push_back(entry.second->getId());
+			if (!itemAttrib.count(attrib.first) || itemAttrib[attrib.first] != attrib.second) {
+				match = false;
 			}
+		}
+		if (match) {
+			r.push_back(entry.second->getId());
 		}
 	}
 	return r;
