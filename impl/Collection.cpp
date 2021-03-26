@@ -212,3 +212,8 @@ Collection::ItemChanged(const sdbus::ObjectPath &item) {
 	emitPropertiesChangedSignal("org.freedesktop.Secret.Collection", {"Items"});
 	if (proxy) proxy->emitItemChanged(item);
 }
+
+std::shared_ptr<SecretService>
+Collection::GetService() {
+	return parent.lock();
+}

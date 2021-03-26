@@ -9,6 +9,7 @@
 #include <iostream>
 #include <filesystem>
 #include "Item.h"
+#include "sessions/sessions.h"
 
 using namespace std;
 
@@ -25,18 +26,21 @@ SecretService::~SecretService() {
 std::tuple<sdbus::Variant, sdbus::ObjectPath>
 SecretService::OpenSession(const std::string &algorithm,
                            const sdbus::Variant &input) {
-
-	if (!algorithm.empty() && algorithm != "plain") {
+	unique_ptr<Session> session;
+	auto ptr = weak_from_this();
+	auto &conn = this->getObject().getConnection();
+	auto path = "/org/freedesktop/secrets/session/" + nanoid::generate();
+	sdbus::Variant rtn;
+	if (algorithm.empty() || algorithm == "plain") {
+		session = make_unique<Sessions::Plain>(ptr, conn, path);
+		rtn = session->getOutput();
+	} else {
 		throw sdbus::Error("org.freedesktop.DBus.Error.NotSupported", "Only plain is supported");
 	}
 
-	// TODO: find a way to track calling process
-	auto session = make_unique<Session>(this->weak_from_this(), this->getObject().getConnection(),
-	                                    "/org/freedesktop/secrets/session/" + nanoid::generate());
-	auto sessionPath = session->getObjectPath();
-	sessions.insert({sessionPath, move(session)});
+	sessions.insert({path, move(session)});
 
-	return {sdbus::Variant(""), sdbus::ObjectPath(sessionPath)};
+	return {rtn, path};
 }
 
 std::tuple<sdbus::ObjectPath, sdbus::ObjectPath>
@@ -220,6 +224,11 @@ SecretService::InitCollections() {
 		collection->InitItems();
 		collections.insert({id, move(collection)});
 	}
+}
+
+std::pair<std::vector<uint8_t>, std::vector<uint8_t>>
+SecretService::EncryptSecret(const string &path, uint8_t *data, size_t len) {
+	return std::move(sessions[path]->encryptSecret(data, len));
 }
 
 

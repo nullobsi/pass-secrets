@@ -33,6 +33,9 @@ public:
 	void
 	InitCollections();
 
+	std::pair<std::vector<uint8_t>, std::vector<uint8_t>>
+	EncryptSecret(const std::string &path, uint8_t *data, size_t len);
+
 protected:
 	std::tuple<sdbus::Variant, sdbus::ObjectPath>
 	OpenSession(const std::string &algorithm,

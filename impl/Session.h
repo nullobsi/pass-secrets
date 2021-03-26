@@ -18,6 +18,9 @@ public:
 
 	~Session();
 
+	virtual std::pair<std::vector<uint8_t>, std::vector<uint8_t>> encryptSecret(uint8_t *secret, size_t len) = 0;
+	virtual sdbus::Variant getOutput() = 0;
+
 private:
 	void
 	Close(sdbus::MethodCall msg);

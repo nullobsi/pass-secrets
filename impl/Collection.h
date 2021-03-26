@@ -88,6 +88,9 @@ public:
 	void
 	ItemChanged(const sdbus::ObjectPath& item);
 
+	std::shared_ptr<SecretService>
+	GetService();
+
 
 private:
 	std::shared_ptr<PassCollection> backend;

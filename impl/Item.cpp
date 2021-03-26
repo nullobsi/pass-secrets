@@ -9,6 +9,7 @@
 #include <cstring>
 #include "Collection.h"
 #include "ItemProxy.h"
+#include "SecretService.h"
 
 bool
 Item::Locked() {
@@ -75,10 +76,8 @@ Item::Item(std::shared_ptr<PassItem> backend_,
            sdbus::IConnection &conn,
            std::string path,
            std::weak_ptr<Collection> parent_) : backend(std::move(backend_)),
-                                                sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor, sdbus::Properties_adaptor>(conn,
-                                                                                                                 std::move(
-		                                                                                                                 path)),
-                                                parent(std::move(parent_)) {
+                                                sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor, sdbus::Properties_adaptor>(
+		                                                conn, std::move(path)), parent(std::move(parent_)) {
 	registerAdaptor();
 }
 
@@ -92,15 +91,12 @@ Item::GetSecret(const sdbus::ObjectPath &session) {
 		throw sdbus::Error("org.freedesktop.Secret.Error.IsLocked",
 		                   "The object must be unlocked before this action can be carried out.");
 	}
-	auto cArr = backend->getSecret();
-	std::vector<uint8_t> secret(cArr, cArr + backend->getSecretLength());
+	auto encrypted = parent.lock()->GetService()
+	                       ->EncryptSecret(session, backend->getSecret(), backend->getSecretLength());
+
 
 	// TODO: how to check item type?
-	return sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>(
-			std::tuple<sdbus::ObjectPath, std::vector<uint8_t>, std::vector<uint8_t>, std::string>(session,
-			                                                                                       std::vector<uint8_t>(),
-			                                                                                       secret,
-			                                                                                       "text/plain"));
+	return std::tuple(session, std::move(encrypted.first), std::move(encrypted.second), "text/plain");
 }
 
 sdbus::ObjectPath
@@ -131,7 +127,8 @@ Item::updateProxy(std::string proxiedCollection) {
 			proxy.reset();
 		}
 	} else {
-		proxy = std::make_unique<ItemProxy>(this->getObject().getConnection(), proxiedCollection + "/" + backend->getId(), weak_from_this());
+		proxy = std::make_unique<ItemProxy>(this->getObject().getConnection(),
+		                                    proxiedCollection + "/" + backend->getId(), weak_from_this());
 	}
 }
 
