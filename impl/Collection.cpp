@@ -186,6 +186,8 @@ Collection::updateItem(std::shared_ptr<Item> item) {
 	if (!backend->getAlias().empty()) {
 		auto path = "/org/freedesktop/secrets/aliases/" + backend->getAlias();
 		item->updateProxy(path);
+	} else {
+		item->updateProxy("");
 	}
 }
 
@@ -200,11 +202,13 @@ Collection::ItemCreated(const sdbus::ObjectPath &item) {
 void
 Collection::ItemDeleted(const sdbus::ObjectPath &item) {
 	emitItemDeleted(item);
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Collection", {"Items"});
 	if (proxy) proxy->emitItemDeleted(item);
 }
 
 void
 Collection::ItemChanged(const sdbus::ObjectPath &item) {
 	emitItemChanged(item);
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Collection", {"Items"});
 	if (proxy) proxy->emitItemChanged(item);
 }

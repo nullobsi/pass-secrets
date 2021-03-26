@@ -7,12 +7,13 @@
 
 #include "../interop/PassItem.h"
 #include "sdbus-c++/sdbus-c++.h"
+#include "sdbus-c++/StandardInterfaces.h"
 #include "../adaptors/itemadaptor.h"
 
 class Collection;
 class ItemProxy;
 
-class Item : public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor> , public std::enable_shared_from_this<Item> {
+class Item : public sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor, sdbus::Properties_adaptor> , public std::enable_shared_from_this<Item> {
 public:
 	Item(std::shared_ptr<PassItem> backend_,
 	     sdbus::IConnection &conn,
@@ -65,6 +66,9 @@ public:
 
 	void
 	updateProxy(std::string proxiedCollection);
+
+	std::string
+	getCollectionId();
 
 
 private:

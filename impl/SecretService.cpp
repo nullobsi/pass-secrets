@@ -72,7 +72,11 @@ SecretService::Unlock(const std::vector<sdbus::ObjectPath> &objects) {
 	// TODO: Prompt?
 	std::vector<sdbus::ObjectPath> unlocked;
 	for (const auto &item : fromObjectPath((const vector<string> &)objects)) {
-		if (!item->Locked() || item->getBackend()->unlock()) unlocked.push_back(item->getPath());
+		if (!item->Locked() || item->getBackend()->unlock()) {
+			item->emitPropertiesChangedSignal("org.freedesktop.Secret.Item", {"Locked"});
+			collections[item->getCollectionId()]->emitPropertiesChangedSignal("org.freedesktop.Secret.Collection", {"Locked"});
+			unlocked.push_back(item->getPath());
+		}
 	}
 
 	return std::tuple(unlocked, "/");
@@ -85,6 +89,8 @@ SecretService::Lock(const std::vector<sdbus::ObjectPath> &objects) {
 	for (const auto &item : fromObjectPath((const vector<string> &)objects)) {
 		// TODO: could this cause a segfault?
 		item->getBackend()->lock();
+		item->emitPropertiesChangedSignal("org.freedesktop.Secret.Item", {"Locked"});
+		collections[item->getCollectionId()]->emitPropertiesChangedSignal("org.freedesktop.Secret.Collection", {"Locked"});
 		locked.push_back(item->getPath());
 	}
 	return std::tuple(locked, "/");

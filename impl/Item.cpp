@@ -24,6 +24,7 @@ void
 Item::Attributes(const std::map<std::string, std::string> &value) {
 	backend->setAttrib(value);
 	backend->updateMetadata();
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Item", {"Attributes", "Modified"});
 	parent.lock()->ItemChanged(getPath());
 }
 
@@ -36,6 +37,7 @@ void
 Item::Label(const std::string &value) {
 	backend->setLabel(value);
 	backend->updateMetadata();
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Item", {"Label", "Modified"});
 	parent.lock()->ItemChanged(getPath());
 }
 
@@ -48,6 +50,7 @@ void
 Item::Type(const std::string &value) {
 	backend->setType(value);
 	backend->updateMetadata();
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Item", {"Type", "Modified"});
 	parent.lock()->ItemChanged(getPath());
 }
 
@@ -72,7 +75,7 @@ Item::Item(std::shared_ptr<PassItem> backend_,
            sdbus::IConnection &conn,
            std::string path,
            std::weak_ptr<Collection> parent_) : backend(std::move(backend_)),
-                                                sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor>(conn,
+                                                sdbus::AdaptorInterfaces<org::freedesktop::Secret::Item_adaptor, sdbus::Properties_adaptor>(conn,
                                                                                                                  std::move(
 		                                                                                                                 path)),
                                                 parent(std::move(parent_)) {
@@ -111,6 +114,7 @@ Item::SetSecret(const sdbus::Struct<sdbus::ObjectPath, std::vector<uint8_t>, std
 	auto nData = (uint8_t *)malloc(sizeof(uint8_t) * data.size());
 	memcpy(nData, data.data(), sizeof(uint8_t) * data.size());
 	backend->setSecret(nData, data.size());
+	emitPropertiesChangedSignal("org.freedesktop.Secret.Item", {"Locked", "Modified"});
 
 	parent.lock()->ItemChanged(getPath());
 }
@@ -129,4 +133,9 @@ Item::updateProxy(std::string proxiedCollection) {
 	} else {
 		proxy = std::make_unique<ItemProxy>(this->getObject().getConnection(), proxiedCollection + "/" + backend->getId(), weak_from_this());
 	}
+}
+
+std::string
+Item::getCollectionId() {
+	return parent.lock()->GetBacking()->getId();
 }
