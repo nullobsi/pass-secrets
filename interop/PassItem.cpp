@@ -172,6 +172,7 @@ void
 PassItem::lock() {
 	if (isUnlocked()) {
 		free(secret);
+		secret = nullptr;
 		secretLength = 0;
 	}
 }
