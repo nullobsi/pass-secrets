@@ -228,6 +228,7 @@ SecretService::InitCollections() {
 
 std::pair<std::vector<uint8_t>, std::vector<uint8_t>>
 SecretService::EncryptSecret(const string &path, uint8_t *data, size_t len) {
+    if (!sessions.at(path)) throw std::runtime_error("Error: Session does not exist!");
 	return std::move(sessions[path]->encryptSecret(data, len));
 }
 

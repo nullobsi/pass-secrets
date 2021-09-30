@@ -116,25 +116,9 @@ PassCollection::searchItems(const map<std::string, std::string> &attribs) {
 void
 PassCollection::Delete() {
 	string path = (location).lexically_relative(location.parent_path().parent_path()).generic_string();
-	const char *command_line[] = {PassStore::passLocation.c_str(), "rm", "-rf", path.c_str(), nullptr};
 
-	struct subprocess_s subprocess;
-	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while spawning pass");
-	}
-	int rtn;
-	res = subprocess_join(&subprocess, &rtn);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while joining with pass!");
-	}
-	if (rtn != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("pass returned an error while deleting!");
-	}
-	subprocess_destroy(&subprocess);
+    subprocess::command cmdline {PassStore::passLocation + " rm -rf " + path};
+    cmdline.run();
 }
 
 std::shared_ptr<PassItem>
@@ -146,35 +130,10 @@ PassCollection::CreateItem(uint8_t *data,
 	string itemId = nanoid::generate();
 	string path = (location / itemId / "secret").lexically_relative(location.parent_path().parent_path()).generic_string();
 
-	const char *command_line[] = {PassStore::passLocation.c_str(), "insert", "-mf", path.c_str(), nullptr};
+    string datStr((char*)data, len);
+    subprocess::command cmdline {PassStore::passLocation + " insert -mf " + path};
 
-	struct subprocess_s subprocess;
-	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while spawning pass");
-	}
-
-	auto writeIn = subprocess_stdin(&subprocess);
-	auto written = fwrite(data, sizeof(uint8_t), len, writeIn);
-
-	if (written != len) {
-		subprocess_terminate(&subprocess);
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Could not write to pass!");
-	}
-
-	int rtn;
-	res = subprocess_join(&subprocess, &rtn);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while joining with pass!");
-	}
-	if (rtn != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("pass returned an error while writing!");
-	}
-	subprocess_destroy(&subprocess);
+    (cmdline < datStr).run();
 
 	Document d;
 	auto itemCreated = (uint64_t)time(nullptr);

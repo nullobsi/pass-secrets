@@ -14,6 +14,7 @@
 
 using namespace std;
 using namespace rapidjson;
+using namespace subprocess::literals;
 
 PassItem::PassItem(std::filesystem::path location_) : location(move(location_)) {
 	fstream docFile;
@@ -100,65 +101,13 @@ bool
 PassItem::unlock() {
 	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path())
 	                                   .generic_string();
-	const char *command_line[] = {PassStore::passLocation.c_str(), "show", path.c_str(), nullptr};
+    string out;
+    subprocess::command cmdline {PassStore::passLocation + " show \"" + path + "\""};
+    (cmdline > out).run();
 
-	struct subprocess_s subprocess;
-	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment
-	                                          | subprocess_option_enable_async, &subprocess);
-	if (res != 0) {
-		throw std::runtime_error("Error while spawning pass");
-	}
-
-	auto *buf = static_cast<uint8_t *>(malloc(sizeof(uint8_t) * BUF_SIZE));
-	size_t totalRead = 0;
-	long buffers = 1;
-
-	if (buf == nullptr) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error allocating read buffer");
-	}
-	while (true) {
-		// read to buffer at proper offset and size
-		uint8_t *offset = buf + totalRead;
-		size_t numToRead = (BUF_SIZE * buffers) - totalRead;
-		size_t r = subprocess_read_stdout(&subprocess, reinterpret_cast<char *const>(offset),
-		                                  numToRead * sizeof(uint8_t));
-		totalRead += r;
-
-		// check EOF
-		if (r == 0) break;
-
-		// resize buffer if needed
-		if (totalRead == (BUF_SIZE * buffers)) {
-			auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t) * (totalRead + BUF_SIZE)));
-			if (nbuf == nullptr) {
-				free(buf);
-				subprocess_destroy(&subprocess);
-				throw std::runtime_error("Failed allocating more buffer memory!");
-			}
-			buffers++;
-			buf = nbuf;
-		}
-	}
-	if (totalRead == 0) {
-		free(buf);
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Failed to read buffer!");
-	}
-	// make buffer proper size
-	if (totalRead != (BUF_SIZE * buffers)) {
-		auto *nbuf = static_cast<uint8_t *>(realloc(buf, sizeof(uint8_t) * totalRead));
-		if (nbuf == nullptr) {
-			free(buf);
-			subprocess_destroy(&subprocess);
-			throw std::runtime_error("Failed shrinking buffer!");
-		}
-		buf = nbuf;
-	}
-
-	secret = buf;
-	secretLength = totalRead;
-	subprocess_destroy(&subprocess);
+    secretLength = out.length();
+    secret = static_cast<uint8_t *>(malloc(secretLength));
+    memcpy(secret, out.c_str(), secretLength);
 
 	return true;
 }
@@ -236,60 +185,18 @@ PassItem::setSecret(uint8_t *data,
 	secret = data;
 	secretLength = n;
 	string path = (location / "secret").lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
+    string datStr((char*)data, n);
+    subprocess::command cmdline {PassStore::passLocation + " insert -mf " + path};
 
-	const char *command_line[] = {PassStore::passLocation.c_str(), "insert", "-mf", path.c_str(), nullptr};
-
-	struct subprocess_s subprocess;
-	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while spawning pass");
-	}
-
-	auto writeIn = subprocess_stdin(&subprocess);
-	auto written = fwrite(secret, sizeof(uint8_t), secretLength, writeIn);
-
-	if (written != secretLength) {
-		subprocess_terminate(&subprocess);
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Could not write to pass!");
-	}
-
-	int rtn;
-	res = subprocess_join(&subprocess, &rtn);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while joining with pass!");
-	}
-	if (rtn != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("pass returned an error while writing!");
-	}
-	subprocess_destroy(&subprocess);
+    (cmdline < datStr).run();
 }
 
 void
 PassItem::Delete() {
 	string path = (location).lexically_relative(location.parent_path().parent_path().parent_path()).generic_string();
-	const char *command_line[] = {PassStore::passLocation.c_str(), "rm", "-rf", path.c_str(), nullptr};
 
-	struct subprocess_s subprocess;
-	int res = subprocess_create(command_line, subprocess_option_e::subprocess_option_inherit_environment, &subprocess);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while spawning pass");
-	}
-	int rtn;
-	res = subprocess_join(&subprocess, &rtn);
-	if (res != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("Error while joining with pass!");
-	}
-	if (rtn != 0) {
-		subprocess_destroy(&subprocess);
-		throw std::runtime_error("pass returned an error while deleting!");
-	}
-	subprocess_destroy(&subprocess);
+    subprocess::command cmdline {PassStore::passLocation + " rm -rf " + path};
+    cmdline.run();
 }
 
 uint64_t
