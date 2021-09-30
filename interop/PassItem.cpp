@@ -171,6 +171,7 @@ PassItem::isUnlocked() {
 void
 PassItem::lock() {
 	if (isUnlocked()) {
+        memset(secret, 0, secretLength);
 		free(secret);
 		secret = nullptr;
 		secretLength = 0;
