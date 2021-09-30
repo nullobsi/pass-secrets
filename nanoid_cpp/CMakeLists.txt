@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-add_subdirectory(vendor/catch2)
+#add_subdirectory(vendor/catch2)
 
 file(GLOB_RECURSE NANOID_SRC_FILES src/*.cpp)
 file(GLOB_RECURSE NANOID_INC_FILES inc/*.h)
@@ -21,12 +21,12 @@ target_link_libraries(nanoid Threads::Threads)
 #############################################
 # Unit tests
 
-enable_testing()
-add_executable(nanoid_tests tests/unit_tests.cpp)
+#enable_testing()
+#add_executable(nanoid_tests tests/unit_tests.cpp)
 
-target_link_libraries(nanoid_tests
-    nanoid
-    Catch2::Test
-)
+#target_link_libraries(nanoid_tests
+#    nanoid
+#    Catch2::Test
+#)
 
-add_test(test_all nanoid_tests)
+#add_test(test_all nanoid_tests)
