@@ -6,6 +6,7 @@
 #include "DocumentHelper.h"
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 #include <nanoid/nanoid.h>
 
 using namespace std;

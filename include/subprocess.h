@@ -55,6 +55,9 @@ extern "C"
 #include <sys/wait.h>
 #include <unistd.h>
 #include <wordexp.h>
+
+/* Have to be manually defined according to POSIX */
+extern char **environ;
 }
 
 namespace subprocess
