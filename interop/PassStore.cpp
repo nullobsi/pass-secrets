@@ -27,7 +27,11 @@ PassStore::PassStore() {
 	}
 
 	if (!filesystem::exists(storePrefix)) {
-		filesystem::create_directory(storePrefix);
+		try {
+			filesystem::create_directory(storePrefix);
+		} catch (std::filesystem::filesystem_error &e) {
+			throw runtime_error("Could not create directory " + storePrefix.string());
+		}
 	}
 
 	bool hasDefault = false;
