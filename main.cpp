@@ -11,7 +11,15 @@ main() {
 	auto conn = sdbus::createSessionBusConnection();
 	conn->requestName("org.freedesktop.secrets");
 
-	auto service = std::make_shared<SecretService>(*conn, "/org/freedesktop/secrets");
+    std::shared_ptr<SecretService> service;
+    try {
+        service = std::make_shared<SecretService>(*conn, "/org/freedesktop/secrets");
+    } catch(sdbus::Error &e) {
+        std::cerr << "There was an error registering to DBus." << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
+
 	service->InitCollections();
 	while (true) {
 		if (!conn->processPendingRequest()) {
