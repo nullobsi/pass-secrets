@@ -21,3 +21,10 @@ You can then install with `sudo make install`. This will by default install a sy
 sudo make install
 systemctl --user enable pass-secrets
 ```
+
+Alternatively, you can run it in the background in your bashrc/xinitrc.
+```
+...
+/usr/local/bin/pass-secrets &
+...
+```
