@@ -15,7 +15,7 @@ cmake ..
 make
 ```
 
-You can then install with `sudo make install`. This will by default install a systemd user service that can be dbus-activated when enabled.
+You can then install with `sudo make install` and uninstall with `sudo xargs < rm install_manifest.txt`. This will by default install a systemd user service that can be dbus-activated when enabled.
 
 ```
 sudo make install
