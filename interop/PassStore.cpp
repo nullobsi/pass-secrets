@@ -61,6 +61,16 @@ PassStore::PassStore() {
 			pathEntries.push_back(token);
 		}
 		for (const auto &dirName : pathEntries) {
+			fs::directory_iterator j;
+			// Handle the edge-case where a directory in
+			// $PATH doesn't exist.
+			try {
+				j = fs::directory_iterator(dirName);
+			} catch (fs::filesystem_error &e) {
+				std::cerr << "Path directory " << dirName
+					  << " doesn't exist, skipping" << std::endl;
+				continue;
+			}
 			fs::directory_iterator i(dirName);
 			for (const auto &file : i) {
 				if (file.is_regular_file() && file.path().filename() == "pass") {
