@@ -8,7 +8,13 @@
 int
 main() {
 
-	auto conn = sdbus::createSessionBusConnection();
+	std::unique_ptr<sdbus::IConnection> conn;
+	try {
+		conn = sdbus::createSessionBusConnection();
+	} catch (std::runtime_error &e) {
+		std::cerr << "There was an error creating DBus connection." << std::endl;
+		std::cerr << "Error: " << e.what() << std::endl;
+	}
 	conn->requestName("org.freedesktop.secrets");
 
     std::shared_ptr<SecretService> service;
