@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 if (NOT DEFINED CMAKE_INSTALL_PREFIX)
-    set (CMAKE_INSTALL_PREFIX "/usr" CACHE PATH "Install to /usr" FORCE)
+    set (CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Install to /usr/local" FORCE)
 endif()
 
 option(INSTALL_DBUS_SERVICE "Overwrite the gnome-keyring org.freedesktop.secrets.service file." ON)
