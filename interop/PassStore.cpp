@@ -61,23 +61,22 @@ PassStore::PassStore() {
 			pathEntries.push_back(token);
 		}
 		for (const auto &dirName : pathEntries) {
-			fs::directory_iterator j;
-			// Handle the edge-case where a directory in
-			// $PATH doesn't exist.
+			// Handle any potential errors in filesystem access.
 			try {
-				j = fs::directory_iterator(dirName);
-			} catch (fs::filesystem_error &e) {
-				std::cerr << "Path directory " << dirName
-					  << " doesn't exist, skipping" << std::endl;
-				continue;
-			}
-			fs::directory_iterator i(dirName);
-			for (const auto &file : i) {
-				if (file.is_regular_file() && file.path().filename() == "pass") {
-					std::cout << "Found pass at " + file.path().string() << std::endl;
-					passLocation = file.path().string();
-					goto finish;
+				fs::directory_iterator i(dirName);
+				for (const auto &file : i) {
+					if (file.is_regular_file() && file.path().filename() == "pass") {
+						std::cout << "Found pass at " + file.path().string() << std::endl;
+						passLocation = file.path().string();
+						goto finish;
+					}
 				}
+			} catch (std::exception &error) {
+				cerr << "Error found while accessing " << dirName << " in path:" << endl;
+				// std::filesystem_error should include details in
+				// what()...
+				cerr << error.what() << endl;
+				continue;
 			}
 		}
 		throw std::runtime_error("Pass not found in path!");

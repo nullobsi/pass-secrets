@@ -14,6 +14,7 @@ main() {
 	} catch (std::runtime_error &e) {
 		std::cerr << "There was an error creating DBus connection." << std::endl;
 		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
 	}
 	conn->requestName("org.freedesktop.secrets");
 
