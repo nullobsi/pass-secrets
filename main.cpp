@@ -8,17 +8,24 @@
 int
 main() {
 
-	auto conn = sdbus::createSessionBusConnection();
+	std::unique_ptr<sdbus::IConnection> conn;
+	try {
+		conn = sdbus::createSessionBusConnection();
+	} catch (std::runtime_error &e) {
+		std::cerr << "There was an error creating DBus connection." << std::endl;
+		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
+	}
 	conn->requestName("org.freedesktop.secrets");
 
-    std::shared_ptr<SecretService> service;
-    try {
-        service = std::make_shared<SecretService>(*conn, "/org/freedesktop/secrets");
-    } catch(sdbus::Error &e) {
-        std::cerr << "There was an error registering to DBus." << std::endl;
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    }
+	std::shared_ptr<SecretService> service;
+	try {
+		service = std::make_shared<SecretService>(*conn, "/org/freedesktop/secrets");
+	} catch(sdbus::Error &e) {
+		std::cerr << "There was an error registering to DBus." << std::endl;
+		std::cerr << "Error: " << e.what() << std::endl;
+		return 1;
+	}
 
 	service->InitCollections();
 	while (true) {
