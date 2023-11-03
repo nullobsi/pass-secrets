@@ -4,11 +4,11 @@ if (NOT DEFINED CMAKE_INSTALL_PREFIX)
     set (CMAKE_INSTALL_PREFIX "/usr/local" CACHE PATH "Install to /usr/local" FORCE)
 endif()
 
-option(INSTALL_DBUS_SERVICE "Overwrite the gnome-keyring org.freedesktop.secrets.service file." ON)
+option(INSTALL_DBUS_SERVICE "Overwrite the gnome-keyring si.nullob.pass-secrets.service file." ON)
 
 if(INSTALL_DBUS_SERVICE)
-    configure_file(install/org.freedesktop.secrets.service.in org.freedesktop.secrets.service)
-    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.freedesktop.secrets.service DESTINATION share/dbus-1/services)
+    configure_file(install/si.nullob.pass-secrets.service.in si.nullob.pass-secrets.service)
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/si.nullob.pass-secrets.service DESTINATION share/dbus-1/services)
 endif()
 
 configure_file(install/pass-secrets.service.in pass-secrets.service)
